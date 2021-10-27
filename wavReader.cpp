@@ -135,7 +135,7 @@ double wavReader::getAverage() {
 vector<float> wavReader::dataToVector(int skip) {
     resetRead();
     vector<float> temp;
-    for (int i = 0; i < channelLength; i++) {
+    for (int i = 0; i < sampleNum; i+=skip) {
         temp.push_back(skippingBitRead16(skip));
     }
     resetRead();

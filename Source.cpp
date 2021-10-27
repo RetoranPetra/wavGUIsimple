@@ -13,7 +13,7 @@
 #include "L2DFileDialog.h"
 #include <implot.h>
 
-#define cmd
+#define GUI
 #define fileBuffer 100
 
 using std::vector;
@@ -66,11 +66,13 @@ int main(int, char**)
     gnu.cleanup();
     */
     
-    std::vector<float> data = wav.dataToVector();
+    std::vector<float> data = wav.dataToVector(1);
+    double sum = 0;
     int length = data.size();
-    for (int i = 0; i < 3000; i++) {
-        cout << data[i] << "\n";
+    for (int i = 0; i < length; i++) {
+        sum += fabs(data[i]);
     }
+    cout << "Avg " << sum / (double)length;
 
 #elif defined GUI
     // Setup window
@@ -207,8 +209,8 @@ int main(int, char**)
                 }
                 cout << "Using scale: " << scale << "\n";
 
-                yVector = wav.dataToVector(scale-1);
-                xVector = wav.timeToVector(scale-1);
+                yVector = wav.dataToVector(scale);
+                xVector = wav.timeToVector(scale);
                 cout << "y size: " << yVector.size() << "\nx size: " << xVector.size() << "\nChannel Size: " << wav.getChannelLength() << "\n";
                 cout << "y\n";
                 for (int i = 0; i < 1000; i++) {
@@ -221,7 +223,7 @@ int main(int, char**)
                 plotWindow = true;
             }
             ImGui::SameLine();
-            //ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e5, 1e6);
+            ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e5, 1e6);
             ImGui::End();
         }
 
@@ -232,10 +234,10 @@ int main(int, char**)
                 cout << "inside implot if\n";
                 float* yVals = &yVector[0];
                 float* xVals = &xVector[0];
-                ImPlot::PlotStairs("Dataset", xVals, yVals, wav.getChannelLength());
+                ImPlot::PlotStairs("Dataset", xVals, yVals, wav.getChannelLength()/scale);
                 ImPlot::EndPlot();
             }
-            //cout << "Outside implot if\n";
+            cout << "Outside implot if\n";
             ImGui::End();
         }
 
