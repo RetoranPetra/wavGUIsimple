@@ -1,0 +1,6 @@
+﻿  Source.cpp
+  gnuPlotter.cpp
+  wavReader.cpp
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(29,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
+  Generating Code...
+  wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\Debug\wavGUIsimple.exe
