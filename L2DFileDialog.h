@@ -46,7 +46,7 @@ namespace FileDialog {
 	void ShowFileDialog(bool* open, char* buffer, unsigned int bufferSize, std::string drive,FileDialogType type = FileDialogType::OpenFile) {
 		static int fileDialogFileSelectIndex = 0;
 		static int fileDialogFolderSelectIndex = 0;
-		static std::string fileDialogCurrentPath = drive+ ":\\Users\\flyro\\source\\repos\\ConsoleApplication1\\ConsoleApplication1";
+		static std::string fileDialogCurrentPath = drive+ ":\\";
 		static std::string fileDialogCurrentFile = "";
 		static std::string fileDialogCurrentFolder = "";
 		static char fileDialogError[500] = "";
@@ -54,8 +54,13 @@ namespace FileDialog {
 		static FileDialogSortOrder sizeSortOrder = FileDialogSortOrder::None;
 		static FileDialogSortOrder dateSortOrder = FileDialogSortOrder::None;
 		static FileDialogSortOrder typeSortOrder = FileDialogSortOrder::None;
-
-
+		if (drive[0] != fileDialogCurrentPath[0]) {
+			fileDialogCurrentPath = drive + ":\\";
+			fileDialogFileSelectIndex = 0;
+			fileDialogFolderSelectIndex = 0;
+			fileDialogCurrentFile = "";
+			fileDialogCurrentFolder = "";
+		}
 		if (open) {
 			ImGui::SetNextWindowSize(ImVec2(740.0f, 410.0f));
 			ImGui::Begin("Select a file", nullptr, ImGuiWindowFlags_NoResize);

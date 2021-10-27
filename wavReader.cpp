@@ -133,6 +133,7 @@ double wavReader::getAverage() {
 }
 //Send values to vector
 vector<float> wavReader::dataToVector(int skip) {
+    if (!isOpen) { return vector<float>(); }//maybe replace with exception
     resetRead();
     vector<float> temp;
     for (int i = 0; i < sampleNum; i+=skip) {
@@ -142,6 +143,7 @@ vector<float> wavReader::dataToVector(int skip) {
     return temp;
 }
 vector<float> wavReader::timeToVector(int skip) {
+    if (!isOpen) { return vector<float>();}//maybe replace with exception
     vector<float> temp;
     for (int i = 0; i < sampleNum; i+=skip) {
         temp.push_back((float)i / (float)sampleRate);
@@ -164,4 +166,7 @@ string wavReader::getFileName() {
 }
 int wavReader::getChannelLength() {
     return channelLength;
+}
+bool wavReader::is_open() {
+    return isOpen;
 }

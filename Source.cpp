@@ -133,8 +133,8 @@ int main(int, char**)
 
     //My Variables
     char* fileSelectionBuffer = new char[fileBuffer](); //Allows filenames of up to 100 bytes
+    char* driveSelector = new char[2];
     std::string currentFilePath;
-    std::string drive = "C";
 
     wavReader wav;
     gnuPlotter gnu;
@@ -187,10 +187,15 @@ int main(int, char**)
             ImGui::Text(ss.str().c_str());
             ss.str(std::string()); ss << "Sample Number: " << wav.getSampleNum();
             ImGui::Text(ss.str().c_str());
-            if (ImGui::Button("Press For Files!")) {
+            if (ImGui::Button("Locate .wav")) {
                 FileDialog::fileDialogOpen = true;
             }
-            if (ImGui::Button("Plot in GNUPLOT")) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(20.0f);
+            if (ImGui::InputText("Drive", driveSelector, 2)) { //for some reason needs to be 2 long to store one character, might be end of string signifier
+            }
+
+            if (ImGui::Button("Plot in GNUPLOT") && wav.is_open()) {
                 gnu.changeFile(wav.getFileName());
                 gnu.genDatFromWavAuto(wav);
                 //gnu.genImgOutPlt(1024, 512);
@@ -203,7 +208,7 @@ int main(int, char**)
             if (ImGui::Button("Clean up GNUPLOT files")) {
                 gnu.cleanup();
             }
-            if (ImGui::Button("Plot in IMPLOT")) {
+            if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
                 int channelLength = wav.getChannelLength();
                 scale = 1;
                 for (int x = channelLength; x > sampleLimit; x = channelLength / scale) {
@@ -227,7 +232,10 @@ int main(int, char**)
                 plotWindow = true;
             }
             ImGui::SameLine();
-            ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e5, 1e6);
+            ImGui::SetNextItemWidth(100.0f);
+            if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e5, 1e6)) {
+                if (sampleLimit < 1e5) { sampleLimit = 1e5; }//can't be close to 0
+            }
             ImGui::End();
         }
 
@@ -250,13 +258,12 @@ int main(int, char**)
 
         //Opens file dialog lib
         if (FileDialog::fileDialogOpen == true) {
-            FileDialog::ShowFileDialog(&FileDialog::fileDialogOpen,fileSelectionBuffer,100,std::string(drive));
+            FileDialog::ShowFileDialog(&FileDialog::fileDialogOpen,fileSelectionBuffer, fileBuffer,std::string(&driveSelector[0]));
         }
-
         //Checks if file selection buffer has anything in it
-        if (!(*fileSelectionBuffer == NULL) /*&& !wavOpened*/) {
-            //wavOpened = true;
-            std::string buffer = charNullEnderToString(fileSelectionBuffer, 100);
+        if (!(*fileSelectionBuffer == NULL)) {
+            plotWindow = false;
+            std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
             cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
             fileSelectionBuffer = new char[fileBuffer]();

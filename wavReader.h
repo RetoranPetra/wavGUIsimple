@@ -40,4 +40,5 @@ public:
     int16_t getChannels();
     std::string getFileName();
     int getChannelLength();
+    bool is_open();
 };
