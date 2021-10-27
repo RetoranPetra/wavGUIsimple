@@ -33,6 +33,8 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
     return std::string(charPointer, charPointer + length);
 }
 
+int xArray[4] = {5, 3, 2, 5};
+int yArray[4] = { 1,2,3,4 };
 
 int main(int, char**)
 {
@@ -85,7 +87,7 @@ int main(int, char**)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Caleb Evans - DSP Data Processing", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "DSP Data Processing", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
@@ -211,6 +213,7 @@ int main(int, char**)
 
                 yVector = wav.dataToVector(scale);
                 xVector = wav.timeToVector(scale);
+                /*
                 cout << "y size: " << yVector.size() << "\nx size: " << xVector.size() << "\nChannel Size: " << wav.getChannelLength() << "\n";
                 cout << "y\n";
                 for (int i = 0; i < 1000; i++) {
@@ -220,6 +223,7 @@ int main(int, char**)
                 for (int i = 0; i < 1000; i++) {
                     cout << xVector[i] << "\n";
                 }
+                */
                 plotWindow = true;
             }
             ImGui::SameLine();
@@ -231,13 +235,11 @@ int main(int, char**)
             ImGui::Begin("Plotting Window");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                cout << "inside implot if\n";
                 float* yVals = &yVector[0];
                 float* xVals = &xVector[0];
                 ImPlot::PlotStairs("Dataset", xVals, yVals, wav.getChannelLength()/scale);
                 ImPlot::EndPlot();
             }
-            cout << "Outside implot if\n";
             ImGui::End();
         }
 

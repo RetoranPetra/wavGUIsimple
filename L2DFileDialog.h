@@ -24,6 +24,9 @@
 #include <filesystem>
 #include <sstream>
 
+//#define extension ":\\Users\\flyro\\source\\repos\\ConsoleApplication1\\ConsoleApplication1"
+//#define extension "\\"
+
 using namespace std::chrono_literals;
 
 namespace FileDialog {
@@ -43,7 +46,7 @@ namespace FileDialog {
 	void ShowFileDialog(bool* open, char* buffer, unsigned int bufferSize, std::string drive,FileDialogType type = FileDialogType::OpenFile) {
 		static int fileDialogFileSelectIndex = 0;
 		static int fileDialogFolderSelectIndex = 0;
-		static std::string fileDialogCurrentPath = drive+":\\Users\\flyro\\source\\repos\\ConsoleApplication1\\ConsoleApplication1";
+		static std::string fileDialogCurrentPath = drive+ ":\\Users\\flyro\\source\\repos\\ConsoleApplication1\\ConsoleApplication1";
 		static std::string fileDialogCurrentFile = "";
 		static std::string fileDialogCurrentFolder = "";
 		static char fileDialogError[500] = "";
