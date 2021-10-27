@@ -3,7 +3,7 @@ using string = std::string;
 using std::cout;
 using std::to_string;
 //Constructor
-gnuPlotter::gnuPlotter(string name) : fileName(name),img(false){}
+gnuPlotter::gnuPlotter() : img(false){}
 //Private, opens a dat file to write to.
 bool gnuPlotter::openDat() {//Returns true on success, false on failure.
     if (plotGen.is_open()) { cout << "ofstream in use by .plt.\n"; return false; }
@@ -17,6 +17,34 @@ bool gnuPlotter::genDatFromWav(wavReader& wav, unsigned short scale) {//Wav must
     if (scale < 1) { return false; }
     wav.resetRead();
     int sampleNum = wav.getSampleNum() / wav.getChannels();
+    if (scale == 1) {
+        for (int i = 0; i < sampleNum; i++) {
+            float currentVal = wav.sequentialBitRead16();//only works for 16 bit, use 2^x-1 for x bits
+            plotGen << to_string((double)i / (double)wav.getSampleRate()) + " " + to_string(currentVal) + "\n";
+        }
+    }
+    else {
+        sampleNum = sampleNum / scale;
+        for (int i = 0; i < sampleNum; i++) {
+            float currentVal = wav.skippingBitRead16(scale);//only works for 16 bit, use 2^x-1 for x bits
+            plotGen << to_string((double)scale * (double)i / (double)wav.getSampleRate()) + " " + to_string(currentVal) + "\n"; //includes scale to keep time accurate
+        }
+    }
+    plotGen.close();
+    cout << ".dat generation success\n";
+    return true;
+}
+bool gnuPlotter::genDatFromWavAuto(wavReader& wav) {
+    if (!openDat()) { return false; }
+    int scale = 1;
+    int sampleNum = wav.getSampleNum() / wav.getChannels();
+    //Makes sure the effective scale numbers are below 5e5
+    for (int x = sampleNum; x > 5e5; x = sampleNum / scale) {
+        scale++;
+    }
+    cout << "Using scale: " << scale << "\n";
+    lastAutoScale = scale;
+    wav.resetRead();
     if (scale == 1) {
         for (int i = 0; i < sampleNum; i++) {
             float currentVal = wav.sequentialBitRead16();//only works for 16 bit, use 2^x-1 for x bits
@@ -91,4 +119,7 @@ bool gnuPlotter::cleanup() {
 //Uses command line to open up .plt file, works if .plt are handled by gnuplot by default.
 void gnuPlotter::openPltWin() {
     system((fileName + ".plt").c_str());
+}
+int gnuPlotter::getLastAutoScale() {
+    return lastAutoScale;
 }

@@ -21,6 +21,9 @@
     <ClInclude Include="wavReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="L2DFileDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gnuPlotter.cpp">
