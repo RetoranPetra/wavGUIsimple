@@ -359,7 +359,6 @@ int main(int, char**)
             }
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
-                offsetUpdatedFreq = true;
                 updateFourier = true;
                 int max = wav.getChannelLength() / sampleNum20ms /scale;
                 if (sampleOffset20ms > max-1) {
@@ -457,7 +456,7 @@ int main(int, char**)
             //cleans up buffer when done
             fourierBuffer = CArray();
             updateFourier = false;
-
+            offsetUpdatedFreq = true;
             plotFreq = true;
         }
 
