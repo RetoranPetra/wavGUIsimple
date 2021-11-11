@@ -5,6 +5,11 @@
 #include <fstream>
 #include <vector>
 #include <stdio.h>
+
+//stuff for fft
+#include <complex>
+#include <valarray>
+
 //gui stuff
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -17,6 +22,54 @@
 #define fileBuffer 100
 
 using std::vector;
+
+const double PI = 3.141592653589793238460;
+
+typedef std::complex<double> Complex;
+typedef std::valarray<Complex> CArray;
+
+
+//FFT stuff sourced from https://tfetimes.com/c-fast-fourier-transform/
+// Cooley–Tukey FFT (in-place)
+void fft(CArray& x)
+{
+    const size_t N = x.size();
+    if (N <= 1) return;
+
+    // divide
+    CArray even = x[std::slice(0, N / 2, 2)];
+    CArray  odd = x[std::slice(1, N / 2, 2)];
+
+    // conquer
+    fft(even);
+    fft(odd);
+
+    // combine
+    for (size_t k = 0; k < N / 2; ++k)
+    {
+        Complex t = std::polar(1.0, -2 * PI * k / N) * odd[k];
+        x[k] = even[k] + t;
+        x[k + N / 2] = even[k] - t;
+    }
+}
+
+// inverse fft (in-place)
+void ifft(CArray& x)
+{
+    // conjugate the complex numbers
+    x = x.apply(std::conj);
+
+    // forward fft
+    fft(x);
+
+    // conjugate the complex numbers again
+    x = x.apply(std::conj);
+
+    // scale the numbers
+    x /= x.size();
+}
+
+
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -33,9 +86,6 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
     }
     return std::string(charPointer, charPointer + length);
 }
-
-int xArray[4] = {5, 3, 2, 5};
-int yArray[4] = { 1,2,3,4 };
 
 int main(int, char**)
 {
@@ -144,6 +194,8 @@ int main(int, char**)
     bool plotWindow = false;
     bool plotWindow20ms = false;
 
+    bool plotFreq = false;
+
 
     int scale = 1;
 
@@ -151,8 +203,15 @@ int main(int, char**)
     vector<float> xVector;
     int sampleLimit = 1e6;
 
+
+    CArray fourierBuffer;
+    double* fftYVals = nullptr; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
+    double* fftXVals = nullptr;
+
     int sampleOffset20ms = 0;
+
     bool offsetUpdated = false;
+    bool offsetUpdatedFreq = false;
 
 
     //Start of code that matters
@@ -267,6 +326,59 @@ int main(int, char**)
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
                 if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
             }
+            if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
+                //cleans up old double array pointers before continuing, so can write to them again
+                plotFreq = false;
+                //do something, probably FFT
+                int size = wav.getSampleNum20ms();
+                
+                
+                
+                //cout << "Size : " << size << "\n";
+                fourierBuffer.resize(size);
+                for (int i = 0; i < size; i++) {
+                    fourierBuffer[i].real(yVector[i+sampleOffset20ms*size]);
+                }
+                /*
+                //outputs fourier buffer
+                for (int i = 0; i < size; i++) {
+                    cout << "Value " << i << " of fourierbuffer = " << fourierBuffer[i].real() << "\n";
+                }
+                */
+
+                //Applies fourier transform to buffer
+                fft(fourierBuffer);
+                
+                
+                //cout << "After Transform";
+
+                /*
+                //outputs fourier buffer
+                for (int i = 0; i < size; i++) {
+                    cout << "n= " << i << " re: " << fourierBuffer[i].real() << " im:" << fourierBuffer[i].imag() << "\n";
+                }
+                */
+
+                //initialises arrays for xvals
+                fftXVals = new double[size];
+                fftYVals = new double[size];
+
+                int sampleFreq = wav.getSampleRate();
+
+                //convert to x values
+                for (int i = 0; i < size; i++) {
+                    fftXVals[i] = i * sampleFreq / size;
+                }
+
+                //convert to y values
+                for (int i = 0; i < size; i++) {
+                    fftYVals[i] = abs(fourierBuffer[i]);
+                }
+
+                plotFreq = true;
+                //cleans up buffer when done
+                fourierBuffer = CArray();
+            }
             ImGui::End();
         }
 
@@ -297,13 +409,28 @@ int main(int, char**)
             }
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
-                int max = wav.getChannelLength() / wav.getSampleNum20ms();
+                offsetUpdatedFreq = true;
+                int max = wav.getChannelLength() / wav.getSampleNum20ms()/scale;
                 if (sampleOffset20ms > max-1) {
                     sampleOffset20ms = max-1;
                 }
                 else if (sampleOffset20ms < 0) {
                     sampleOffset20ms = 0;
                 }
+            }
+            ImGui::End();
+        }
+
+        if (plotFreq) {
+            ImGui::Begin("Plotting Window Freq");
+            if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
+
+                //Converts float to new array as data is stored continguously in vectors, same as arrays.
+                int size = wav.getSampleNum20ms();
+                //cout << "Size of 20ms is: " << size << "\n";
+                ImPlot::PlotLine("Dataset", fftXVals, fftYVals, size / scale);
+                ImPlot::EndPlot();
             }
             ImGui::End();
         }
@@ -327,7 +454,6 @@ int main(int, char**)
             wav.openSpecific(buffer);
             fileSelectionBuffer = new char[fileBuffer]();
         }
-
 
         // Rendering, must take place at the end of every loop
         ImGui::Render();
