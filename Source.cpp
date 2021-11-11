@@ -339,7 +339,7 @@ int main(int, char**)
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 float* yVals = &yVector[0];
                 float* xVals = &xVector[0];
-                ImPlot::PlotStairs("Dataset", xVals, yVals, wav.getChannelLength()/scale);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), xVals, yVals, wav.getChannelLength()/scale);
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -348,13 +348,13 @@ int main(int, char**)
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str())) {
                 
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
                 float* yVals = &yVector[sampleNum20ms *sampleOffset20ms];
                 float* xVals = &xVector[sampleNum20ms *sampleOffset20ms];
-                ImPlot::PlotLine("Dataset", xVals, yVals, sampleNum20ms / scale);
+                ImPlot::PlotLine(wav.getFileName().c_str(), xVals, yVals, sampleNum20ms / scale);
                 ImPlot::EndPlot();
             }
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
@@ -374,11 +374,11 @@ int main(int, char**)
         if (plotFreq) {
             ImGui::Begin("Plotting Window Freq");
             if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+"'s frequencies").c_str())) {
 
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine("Dataset", fftXVals, fftYVals, sampleNum20ms / scale);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms / scale);
                 ImPlot::EndPlot();
             }
             ImGui::End();
