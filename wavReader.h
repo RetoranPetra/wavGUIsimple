@@ -14,6 +14,8 @@ private:
     char* buffer;
     int16_t* intReader;
 
+    int numSamples20ms;
+
     int fileLengthBytes;
     int sampleNum;
     int channelLength;
@@ -33,12 +35,17 @@ public:
     void incrementReader16();
     void resetRead();
     double getAverage();
-    std::vector<float> dataToVector(int skip = 0);
-    std::vector<float> timeToVector(int skip = 0);
+    std::vector<float> dataToVector(int skip);
+    std::vector<float> timeToVector(int skip);
+
+    //std::vector<float> dataToVector20MS(int skip, int offset);
+    //std::vector<float> timeToVector20MS(int skip, int offset);
+
     int getSampleNum();
     int32_t getSampleRate();
     int16_t getChannels();
     std::string getFileName();
     int getChannelLength();
     bool is_open();
+    int getSampleNum20ms();
 };

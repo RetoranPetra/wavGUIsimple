@@ -53,6 +53,7 @@ bool wavReader::open(string filename) {//Returns true on success, false on failu
         //Output important info
         cout << "Channels: " << channels << "\nSamplerate: " << sampleRate << "\nSamplebits: " << sampleBits << "\nSamplenum: " << sampleNum << "\n";
         channelLength = sampleNum / channels;
+        numSamples20ms = sampleRate/50;
         //Set read flags
         isOpen = true;
         return true;
@@ -91,6 +92,7 @@ bool wavReader::openSpecific(string FileAddress) {
         //Output important info
         cout << "Channels: " << channels << "\nSamplerate: " << sampleRate << "\nSamplebits: " << sampleBits << "\nSamplenum: " << sampleNum << "\n";
         channelLength = sampleNum / channels;
+        numSamples20ms = sampleRate / 50;
         //Set read flags
         isOpen = true;
         return true;
@@ -150,6 +152,27 @@ vector<float> wavReader::timeToVector(int skip) {
     }
     return temp;
 }
+/*
+vector<float> wavReader::dataToVector20MS(int skip, int offset) {
+    if (!isOpen) { return vector<float>(); }//maybe replace with exception
+    resetRead();
+    vector<float> temp;
+
+    for (int i = 0+offset*numSamples20ms; i < (1+offset)*numSamples20ms; i += skip) {
+        temp.push_back(skippingBitRead16(skip));
+    }
+    resetRead();
+    return temp;
+}
+vector<float> wavReader::timeToVector20MS(int skip, int offset) {
+    if (!isOpen) { return vector<float>(); }//maybe replace with exception
+    vector<float> temp;
+    for (int i = 0 + offset * numSamples20ms; i < (1 + offset) * numSamples20ms; i += skip) {
+        temp.push_back((float)i / (float)sampleRate);
+    }
+    return temp;
+}
+*/
 //Bunch of gets for private portions
 int wavReader::getSampleNum() {
     return sampleNum;
@@ -169,4 +192,7 @@ int wavReader::getChannelLength() {
 }
 bool wavReader::is_open() {
     return isOpen;
+}
+int wavReader::getSampleNum20ms() {
+    return numSamples20ms;
 }

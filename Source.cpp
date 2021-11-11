@@ -23,6 +23,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+//used to convert cstring to string, only works for 100 max size
 std::string charNullEnderToString(char* charPointer, unsigned int length) {
     for (int i = 0; i < 100; i++) {
         if (*(charPointer + i) == NULL) {
@@ -133,7 +134,7 @@ int main(int, char**)
 
     //My Variables
     char* fileSelectionBuffer = new char[fileBuffer](); //Allows filenames of up to 100 bytes
-    char* driveSelector = new char[2];
+    char* driveSelector = new char[2]();
     std::string currentFilePath;
 
     wavReader wav;
@@ -141,12 +142,18 @@ int main(int, char**)
 
     bool wavWindow = false;
     bool plotWindow = false;
+    bool plotWindow20ms = false;
+
 
     int scale = 1;
 
     vector<float> yVector;
     vector<float> xVector;
     int sampleLimit = 1e6;
+
+    int sampleOffset20ms = 0;
+    bool offsetUpdated = false;
+
 
     //Start of code that matters
     while (!glfwWindowShouldClose(window)) {
@@ -231,6 +238,30 @@ int main(int, char**)
                 */
                 plotWindow = true;
             }
+            if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
+                int lengthOfData = wav.getSampleNum20ms();
+                scale = 1;
+                for (int x = lengthOfData; x > sampleLimit; x = lengthOfData / scale) {
+                    scale++;
+                }
+                cout << "Using scale: " << scale << "\n";
+
+                yVector = wav.dataToVector(scale);
+                xVector = wav.timeToVector(scale);
+                sampleOffset20ms = 0;
+                /*
+                cout << "y size: " << yVector.size() << "\nx size: " << xVector.size() << "\nChannel Size: " << wav.getChannelLength() << "\n";
+                cout << "y\n";
+                for (int i = 0; i < 1000; i++) {
+                    cout << yVector[i];
+                }
+                cout << "x\n";
+                for (int i = 0; i < 1000; i++) {
+                    cout << xVector[i] << "\n";
+                }
+                */
+                plotWindow20ms = true;
+            }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
@@ -251,6 +282,31 @@ int main(int, char**)
             ImGui::End();
         }
 
+        if (plotWindow20ms) {
+            ImGui::Begin("Plotting Window 20ms Samples");
+            if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
+                
+                //Converts float to new array as data is stored continguously in vectors, same as arrays.
+                int size = wav.getSampleNum20ms();
+                //cout << "Size of 20ms is: " << size << "\n";
+                float* yVals = &yVector[size*sampleOffset20ms];
+                float* xVals = &xVector[size*sampleOffset20ms];
+                ImPlot::PlotLine("Dataset", xVals, yVals, size / scale);
+                ImPlot::EndPlot();
+            }
+            if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
+                offsetUpdated = true;
+                int max = wav.getChannelLength() / wav.getSampleNum20ms();
+                if (sampleOffset20ms > max-1) {
+                    sampleOffset20ms = max-1;
+                }
+                else if (sampleOffset20ms < 0) {
+                    sampleOffset20ms = 0;
+                }
+            }
+            ImGui::End();
+        }
 
         //===========
         //Loop Checks
@@ -262,7 +318,10 @@ int main(int, char**)
         }
         //Checks if file selection buffer has anything in it
         if (!(*fileSelectionBuffer == NULL)) {
+            //Destroys plot windows to prevent problems
             plotWindow = false;
+            plotWindow20ms = false;
+
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
             cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
