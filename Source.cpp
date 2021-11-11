@@ -213,6 +213,7 @@ int main(int, char**)
     bool offsetUpdated = false;
     bool offsetUpdatedFreq = false;
 
+    bool updateFourier = false;
 
     //Start of code that matters
     while (!glfwWindowShouldClose(window)) {
@@ -327,57 +328,7 @@ int main(int, char**)
                 if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
             }
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
-                //cleans up old double array pointers before continuing, so can write to them again
-                plotFreq = false;
-                //do something, probably FFT
-                int size = wav.getSampleNum20ms();
-                
-                
-                
-                //cout << "Size : " << size << "\n";
-                fourierBuffer.resize(size);
-                for (int i = 0; i < size; i++) {
-                    fourierBuffer[i].real(yVector[i+sampleOffset20ms*size]);
-                }
-                /*
-                //outputs fourier buffer
-                for (int i = 0; i < size; i++) {
-                    cout << "Value " << i << " of fourierbuffer = " << fourierBuffer[i].real() << "\n";
-                }
-                */
-
-                //Applies fourier transform to buffer
-                fft(fourierBuffer);
-                
-                
-                //cout << "After Transform";
-
-                /*
-                //outputs fourier buffer
-                for (int i = 0; i < size; i++) {
-                    cout << "n= " << i << " re: " << fourierBuffer[i].real() << " im:" << fourierBuffer[i].imag() << "\n";
-                }
-                */
-
-                //initialises arrays for xvals
-                fftXVals = new double[size];
-                fftYVals = new double[size];
-
-                int sampleFreq = wav.getSampleRate();
-
-                //convert to x values
-                for (int i = 0; i < size; i++) {
-                    fftXVals[i] = i * sampleFreq / size;
-                }
-
-                //convert to y values
-                for (int i = 0; i < size; i++) {
-                    fftYVals[i] = abs(fourierBuffer[i]);
-                }
-
-                plotFreq = true;
-                //cleans up buffer when done
-                fourierBuffer = CArray();
+                updateFourier = true;
             }
             ImGui::End();
         }
@@ -410,6 +361,7 @@ int main(int, char**)
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
                 offsetUpdatedFreq = true;
+                updateFourier = true;
                 int max = wav.getChannelLength() / wav.getSampleNum20ms()/scale;
                 if (sampleOffset20ms > max-1) {
                     sampleOffset20ms = max-1;
@@ -448,12 +400,69 @@ int main(int, char**)
             //Destroys plot windows to prevent problems
             plotWindow = false;
             plotWindow20ms = false;
+            plotFreq = false;
 
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
             cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
             fileSelectionBuffer = new char[fileBuffer]();
         }
+
+
+        //moved from previous button, so multiple things can access it.
+        if (updateFourier) {
+            //cleans up old double array pointers before continuing, so can write to them again
+            int size = wav.getSampleNum20ms();
+
+
+
+            //cout << "Size : " << size << "\n";
+            fourierBuffer.resize(size);
+            for (int i = 0; i < size; i++) {
+                fourierBuffer[i].real(yVector[i + sampleOffset20ms * size]);
+            }
+            /*
+            //outputs fourier buffer
+            for (int i = 0; i < size; i++) {
+                cout << "Value " << i << " of fourierbuffer = " << fourierBuffer[i].real() << "\n";
+            }
+            */
+
+            //Applies fourier transform to buffer
+            fft(fourierBuffer);
+
+
+            //cout << "After Transform";
+
+            /*
+            //outputs fourier buffer
+            for (int i = 0; i < size; i++) {
+                cout << "n= " << i << " re: " << fourierBuffer[i].real() << " im:" << fourierBuffer[i].imag() << "\n";
+            }
+            */
+
+            //initialises arrays for xvals
+            fftXVals = new double[size];
+            fftYVals = new double[size];
+
+            int sampleFreq = wav.getSampleRate();
+
+            //convert to x values
+            for (int i = 0; i < size; i++) {
+                fftXVals[i] = (double)(i * sampleFreq) / (double)size;
+            }
+
+            //convert to y values
+            for (int i = 0; i < size; i++) {
+                fftYVals[i] = pow(abs(fourierBuffer[i]),2)/(double)size;
+            }
+            //cleans up buffer when done
+            fourierBuffer = CArray();
+            updateFourier = false;
+
+            plotFreq = true;
+        }
+
 
         // Rendering, must take place at the end of every loop
         ImGui::Render();
