@@ -233,8 +233,8 @@ int main(int, char**)
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
-            if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e5, 1e6)) {
-                if (sampleLimit < 1e5) { sampleLimit = 1e5; }//can't be close to 0
+            if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
+                if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
             }
             ImGui::End();
         }
