@@ -209,6 +209,7 @@ int main(int, char**)
     double* fftXVals = nullptr;
 
     int sampleOffset20ms = 0;
+    int sampleNum20ms = 0;
 
     bool offsetUpdated = false;
     bool offsetUpdatedFreq = false;
@@ -299,9 +300,8 @@ int main(int, char**)
                 plotWindow = true;
             }
             if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
-                int lengthOfData = wav.getSampleNum20ms();
                 scale = 1;
-                for (int x = lengthOfData; x > sampleLimit; x = lengthOfData / scale) {
+                for (int x = sampleNum20ms; x > sampleLimit; x = sampleNum20ms / scale) {
                     scale++;
                 }
                 cout << "Using scale: " << scale << "\n";
@@ -351,18 +351,17 @@ int main(int, char**)
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
                 
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                int size = wav.getSampleNum20ms();
                 //cout << "Size of 20ms is: " << size << "\n";
-                float* yVals = &yVector[size*sampleOffset20ms];
-                float* xVals = &xVector[size*sampleOffset20ms];
-                ImPlot::PlotLine("Dataset", xVals, yVals, size / scale);
+                float* yVals = &yVector[sampleNum20ms *sampleOffset20ms];
+                float* xVals = &xVector[sampleNum20ms *sampleOffset20ms];
+                ImPlot::PlotLine("Dataset", xVals, yVals, sampleNum20ms / scale);
                 ImPlot::EndPlot();
             }
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
                 offsetUpdatedFreq = true;
                 updateFourier = true;
-                int max = wav.getChannelLength() / wav.getSampleNum20ms()/scale;
+                int max = wav.getChannelLength() / sampleNum20ms /scale;
                 if (sampleOffset20ms > max-1) {
                     sampleOffset20ms = max-1;
                 }
@@ -379,9 +378,8 @@ int main(int, char**)
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str())) {
 
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                int size = wav.getSampleNum20ms();
                 //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine("Dataset", fftXVals, fftYVals, size / scale);
+                ImPlot::PlotLine("Dataset", fftXVals, fftYVals, sampleNum20ms / scale);
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -395,7 +393,7 @@ int main(int, char**)
         if (FileDialog::fileDialogOpen == true) {
             FileDialog::ShowFileDialog(&FileDialog::fileDialogOpen,fileSelectionBuffer, fileBuffer,std::string(&driveSelector[0]));
         }
-        //Checks if file selection buffer has anything in it
+        //Checks if file selection buffer has anything in it, if it does, opens up the wav.
         if (!(*fileSelectionBuffer == NULL)) {
             //Destroys plot windows to prevent problems
             plotWindow = false;
@@ -406,20 +404,20 @@ int main(int, char**)
             cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
             fileSelectionBuffer = new char[fileBuffer]();
+            sampleNum20ms = wav.getSampleNum20ms();
         }
 
 
         //moved from previous button, so multiple things can access it.
         if (updateFourier) {
             //cleans up old double array pointers before continuing, so can write to them again
-            int size = wav.getSampleNum20ms();
 
 
 
             //cout << "Size : " << size << "\n";
-            fourierBuffer.resize(size);
-            for (int i = 0; i < size; i++) {
-                fourierBuffer[i].real(yVector[i + sampleOffset20ms * size]);
+            fourierBuffer.resize(sampleNum20ms);
+            for (int i = 0; i < sampleNum20ms; i++) {
+                fourierBuffer[i].real(yVector[i + sampleOffset20ms * sampleNum20ms]);
             }
             /*
             //outputs fourier buffer
@@ -442,19 +440,19 @@ int main(int, char**)
             */
 
             //initialises arrays for xvals
-            fftXVals = new double[size];
-            fftYVals = new double[size];
+            fftXVals = new double[sampleNum20ms];
+            fftYVals = new double[sampleNum20ms];
 
             int sampleFreq = wav.getSampleRate();
 
             //convert to x values
-            for (int i = 0; i < size; i++) {
-                fftXVals[i] = (double)(i * sampleFreq) / (double)size;
+            for (int i = 0; i < sampleNum20ms; i++) {
+                fftXVals[i] = (double)(i * sampleFreq) / (double)sampleNum20ms;
             }
 
             //convert to y values
-            for (int i = 0; i < size; i++) {
-                fftYVals[i] = pow(abs(fourierBuffer[i]),2)/(double)size;
+            for (int i = 0; i < sampleNum20ms; i++) {
+                fftYVals[i] = pow(abs(fourierBuffer[i]),2)/(double)sampleNum20ms;
             }
             //cleans up buffer when done
             fourierBuffer = CArray();
