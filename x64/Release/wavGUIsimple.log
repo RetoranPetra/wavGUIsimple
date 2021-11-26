@@ -1,9 +1,8 @@
 ﻿  Source.cpp
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(69,16): warning C4244: 'argument': conversion from 'size_t' to 'const std::complex<double>::_Ty', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(204,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(327,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(327,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(328,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(123,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(255,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(255,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(256,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
   Generating code
   1 of 941 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation

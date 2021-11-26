@@ -1,14 +1,13 @@
 #include "gnuPlotter.h"
 #include "wavReader.h"
+//FFT Functions
+#include "FFT.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <stdio.h>
-
-//stuff for fft
-#include <complex>
-#include <valarray>
 
 //gui stuff
 #include <imgui.h>
@@ -22,54 +21,6 @@
 #define fileBuffer 100
 
 using std::vector;
-
-const double PI = 3.141592653589793238460;
-
-typedef std::complex<double> Complex;
-typedef std::valarray<Complex> CArray;
-
-
-//FFT stuff sourced from https://tfetimes.com/c-fast-fourier-transform/
-// Cooley–Tukey FFT (in-place)
-void fft(CArray& x)
-{
-    const size_t N = x.size();
-    if (N <= 1) return;
-
-    // divide
-    CArray even = x[std::slice(0, N / 2, 2)];
-    CArray  odd = x[std::slice(1, N / 2, 2)];
-
-    // conquer
-    fft(even);
-    fft(odd);
-
-    // combine
-    for (size_t k = 0; k < N / 2; ++k)
-    {
-        Complex t = std::polar(1.0, -2 * PI * k / N) * odd[k];
-        x[k] = even[k] + t;
-        x[k + N / 2] = even[k] - t;
-    }
-}
-
-// inverse fft (in-place)
-void ifft(CArray& x)
-{
-    // conjugate the complex numbers
-    x = x.apply(std::conj);
-
-    // forward fft
-    fft(x);
-
-    // conjugate the complex numbers again
-    x = x.apply(std::conj);
-
-    // scale the numbers
-    x /= x.size();
-}
-
-
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -94,40 +45,6 @@ int main(int, char**)
     using std::cout;
     using std::cin;
 
-
-    //Actual Program
-#if defined cmd
-    string fileName;
-    cout << "Input filename of WAV (Excluding .wav): ";
-    cin >> fileName;
-    cout << "\n";
-
-    wavReader wav;
-    gnuPlotter gnu;
-    if (!wav.open(fileName)) { return 0; }
-    cout << "Average amplitude of wav: " << wav.getAverage() << "\n";
-    /*
-    unsigned short scale;
-    cout << "Number of bits to skip per reading (Prevents crashes): ";
-    cin >> scale;
-    
-    gnu.genDatFromWav(wav, scale);
-    //gnu.genImgOutPlt(1024, 512);
-    gnu.genDefaultPlt();
-    gnu.openPltWin();
-    system("pause");
-    gnu.cleanup();
-    */
-    
-    std::vector<float> data = wav.dataToVector(1);
-    double sum = 0;
-    int length = data.size();
-    for (int i = 0; i < length; i++) {
-        sum += fabs(data[i]);
-    }
-    cout << "Avg " << sum / (double)length;
-
-#elif defined GUI
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -176,9 +93,11 @@ int main(int, char**)
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
+    
 
     // Our state
     bool showDemo = false;
+    bool showPlotDemo = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
@@ -199,14 +118,18 @@ int main(int, char**)
 
     int scale = 1;
 
-    vector<float> yVector;
+    vector<float> yVector;//Stores wavfile info
     vector<float> xVector;
     int sampleLimit = 1e6;
 
 
-    CArray fourierBuffer;
+
+    FFT::CArray fourierBuffer;
     double* fftYVals = nullptr; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
     double* fftXVals = nullptr;
+
+    double* fftYVals2 = nullptr;//Used for fft of sola algorithm'd portion
+    double* fftXVals2 = nullptr;
 
     int sampleOffset20ms = 0;
     int sampleNum20ms = 0;
@@ -237,11 +160,16 @@ int main(int, char**)
             ImGui::Begin("Base Window");
             ImGui::Checkbox("Show Demo Window", &showDemo);
             ImGui::Checkbox("Show WavReader", &wavWindow);
+            ImGui::Checkbox("Show Plot Demo", &showPlotDemo);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             if (ImGui::Button("Hello Button")) {
                 cout << "Hello to you!\n";
             }
             ImGui::End();
+        }
+
+        if (showPlotDemo) {
+            ImPlot::ShowDemoWindow(&showPlotDemo);
         }
 
         if (wavWindow) {
@@ -335,7 +263,7 @@ int main(int, char**)
 
         if (plotWindow) {
             ImGui::Begin("Plotting Window");
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str()), "Time (s)", "Amplitude") {
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 float* yVals = &yVector[0];
                 float* xVals = &xVector[0];
@@ -348,7 +276,7 @@ int main(int, char**)
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str()), "Time (s)", "Amplitude") {
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
                 
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
@@ -375,14 +303,14 @@ int main(int, char**)
             ImGui::Begin("Plotting Window Freq");
             if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
             if (ImPlot::BeginPlot(
-                ("Plot of " + wav.getFileName()+"'s frequencies").c_str()), 
+                ("Plot of " + wav.getFileName()+"'s frequencies").c_str(), 
                 "Freq (Hz)", 
                 "Magnitude"
-                /*, ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_LogScale, ImPlotAxisFlags_LogScale*/ //Logscale doesn't work, no idea why.
-                ) {
+                , ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_LogScale, ImPlotAxisFlags_LogScale //Logscale doesn't work, no idea why.
+                )) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms /scale/2);//divided by two to only show positive freq values
+                ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms/scale/2);//divided by two to only show positive freq values
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -394,7 +322,11 @@ int main(int, char**)
 
         //Opens file dialog lib
         if (FileDialog::fileDialogOpen == true) {
-            FileDialog::ShowFileDialog(&FileDialog::fileDialogOpen,fileSelectionBuffer, fileBuffer,std::string(&driveSelector[0]));
+            FileDialog::ShowFileDialog(&FileDialog::fileDialogOpen,//Hands access to window creation to filedialog
+                fileSelectionBuffer,            //Gives a file selection buffer to edit
+                fileBuffer,                     //Size of buffer
+                std::string(&driveSelector[0])  //Makes drive selector into regular string to pass through to file dialog
+            );
         }
         //Checks if file selection buffer has anything in it, if it does, opens up the wav.
         if (!(*fileSelectionBuffer == NULL)) {
@@ -418,7 +350,7 @@ int main(int, char**)
                 fourierBuffer[i].real(yVector[i + sampleOffset20ms * sampleNum20ms]);
             }
             //Applies fourier transform to buffer
-            fft(fourierBuffer);
+            FFT::fft(fourierBuffer);
 
             //initialises arrays for xvals
             fftXVals = new double[sampleNum20ms];
@@ -438,13 +370,11 @@ int main(int, char**)
                 fftYVals[i] = abs(fourierBuffer[i]);
             }
             //cleans up buffer when done
-            fourierBuffer = CArray();
+            fourierBuffer = FFT::CArray();
             updateFourier = false;
             offsetUpdatedFreq = true;
             plotFreq = true;
         }
-
-
         // Rendering, must take place at the end of every loop
         ImGui::Render();
         int display_w, display_h;
@@ -463,7 +393,5 @@ int main(int, char**)
     ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
-
     return 0;
-#endif
-}
+};
