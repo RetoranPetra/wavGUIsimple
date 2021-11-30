@@ -2,6 +2,8 @@
 #include "wavReader.h"
 //FFT Functions
 #include "FFT.h"
+//Sola Functions
+#include "SOLA.h"
 
 #include <string>
 #include <iostream>
@@ -113,16 +115,20 @@ int main(int, char**)
     bool plotWindow = false;
     bool plotWindow20ms = false;
 
+    bool plotWindowSOLA = false;
+
     bool plotFreq = false;
 
 
     int scale = 1;
+    float solaTimeScale = 1.5;
 
     vector<float> yVector;//Stores wavfile info
     vector<float> xVector;
     int sampleLimit = 1e6;
 
-
+    float* solaBuffer = nullptr;
+    float* solaTime = nullptr;
 
     FFT::CArray fourierBuffer;
     double* fftYVals = nullptr; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
@@ -258,6 +264,23 @@ int main(int, char**)
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
                 updateFourier = true;
             }
+            if (ImGui::Button("Apply Sola With Default Vals")) {
+                
+                plotWindowSOLA = true;
+                //Expands solaBuffer
+                solaBuffer = new float[(int)(yVector.size()/ solaTimeScale *1.1f)];
+                //Sola with default values
+                SOLA newCalc(solaTimeScale,4410,882,662,&yVector[0],solaBuffer,yVector.size());
+                newCalc.sola();
+                solaTime = new float[(int)(yVector.size() / solaTimeScale * 1.1f)];
+
+
+                //Reconstructs time portion
+                int size = (int)(yVector.size() / solaTimeScale * 1.1f);
+                for (int i = 0; i < size; i++) {
+                    solaTime[i] = (float)i / wav.getSampleRate();
+                }
+            }
             ImGui::End();
         }
 
@@ -311,6 +334,16 @@ int main(int, char**)
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
                 ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms/scale/2);//divided by two to only show positive freq values
+                ImPlot::EndPlot();
+            }
+            ImGui::End();
+        }
+
+        if (plotWindowSOLA) {
+            ImGui::Begin("SOLA");
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+"SOLA'd").c_str(), "Time (s)", "Amplitude")) {
+                //Converts float to new array as data is stored continguously in vectors, same as arrays.
+                ImPlot::PlotStairs(wav.getFileName().c_str(), solaTime, solaBuffer, (int)(yVector.size() / solaTimeScale));
                 ImPlot::EndPlot();
             }
             ImGui::End();

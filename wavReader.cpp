@@ -152,27 +152,6 @@ vector<float> wavReader::timeToVector(int skip) {
     }
     return temp;
 }
-/*
-vector<float> wavReader::dataToVector20MS(int skip, int offset) {
-    if (!isOpen) { return vector<float>(); }//maybe replace with exception
-    resetRead();
-    vector<float> temp;
-
-    for (int i = 0+offset*numSamples20ms; i < (1+offset)*numSamples20ms; i += skip) {
-        temp.push_back(skippingBitRead16(skip));
-    }
-    resetRead();
-    return temp;
-}
-vector<float> wavReader::timeToVector20MS(int skip, int offset) {
-    if (!isOpen) { return vector<float>(); }//maybe replace with exception
-    vector<float> temp;
-    for (int i = 0 + offset * numSamples20ms; i < (1 + offset) * numSamples20ms; i += skip) {
-        temp.push_back((float)i / (float)sampleRate);
-    }
-    return temp;
-}
-*/
 //Bunch of gets for private portions
 int wavReader::getSampleNum() {
     return sampleNum;
