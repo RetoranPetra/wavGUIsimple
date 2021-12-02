@@ -121,7 +121,7 @@ int main(int, char**)
 
 
     int scale = 1;
-    float solaTimeScale = 1.5;
+    float solaTimeScale = 2.0;
 
     //Max number of samples allowed in plots
     int sampleLimit = 1e4;
@@ -273,18 +273,32 @@ int main(int, char**)
             }
             
             if (ImGui::Button("Apply Sola With Default Vals")) {
-                
+                //Memory cleanup
+                if (solaTime != nullptr) {
+                    delete[] solaTime;
+                }
+                if (solaBuffer != nullptr) {
+                    delete[] solaBuffer;
+                }
+
+                int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
                 plotWindowSOLA = true;
                 //Expands solaBuffer
-                int16_t*temp = new int16_t[(int)(wavData.size()/ solaTimeScale *1.1f)];
+                int16_t*temp = new int16_t[size];
                 //Sola with default values
-                SOLA newCalc(solaTimeScale,4410,882,662,&wavData[0],temp,wavData.size());
+                SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
+                    wav.getSampleNum_ms(100),//Processing sequence size
+                    wav.getSampleNum_ms(20),//Overlap size
+                    wav.getSampleNum_ms(15),//Seek for best overlap size
+                    &wavData[0],//Data to read from
+                    temp,//Data to send to
+                    wavData.size());//Length of data in
+
                 newCalc.sola();
                 solaTime = new float[(int)(wavData.size() / solaTimeScale * 1.1f)];
 
 
                 //Reconstructs time portion
-                int size = (int)(wavData.size() / solaTimeScale * 1.1f);
                 for (int i = 0; i < size; i++) {
                     solaTime[i] = (float)i / wav.getSampleRate();
                 }
@@ -292,6 +306,9 @@ int main(int, char**)
                 //Converts to float for display
                 solaBuffer = new float[size];
                 vectorStuff::floatData(temp, solaBuffer, size);
+                
+                //Memory Cleanup
+                delete[] temp;
             }
             
             ImGui::End();
