@@ -122,6 +122,7 @@ int main(int, char**)
 
     int scale = 1;
     float solaTimeScale = 2.0;
+    float oldSolaTimeScale = 0.0;
 
     //Max number of samples allowed in plots
     int sampleLimit = 1e4;
@@ -165,9 +166,16 @@ int main(int, char**)
     //Bools that store state of whether windows have been updated, and therefore need recentering again.
     bool offsetUpdated = false;
     bool offsetUpdatedFreq = false;
+    bool offsetUpdatedSola = false;
+    bool offsetUpdatedFreqSola = false;
 
     //Bool that makes the fourier values update
     bool updateFourier = false;
+
+    //Bool that tracks whether SOLA has been called
+    bool flagSola = false;
+    bool flagRecalculateSola = false;
+    bool flag20msSola = false;
 
     //Start of code that matters
     while (!glfwWindowShouldClose(window)) {
@@ -272,73 +280,22 @@ int main(int, char**)
                 updateFourier = true;
             }
             
-            if (ImGui::Button("Apply Sola With Default Vals")) {
-                //Memory cleanup
-                if (solaTime != nullptr) {
-                    delete[] solaTime;
-                }
-                if (solaBuffer != nullptr) {
-                    delete[] solaBuffer;
-                }
-                if (dSolaBuffer != nullptr) {
-                    delete[] dSolaBuffer;
-                }
-                if (dSolaTime != nullptr) {
-                    delete[] dSolaTime;
-                }
-
-                int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
+            if (ImGui::Button("Plot SOLA in implot")) {
+                flagRecalculateSola = true;
                 plotWindowSOLA = true;
-                //Expands solaBuffer
-                int16_t*temp = new int16_t[size];
-                //Sola with default values
-                SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
-                    wav.getSampleNum_ms(100),//Processing sequence size
-                    wav.getSampleNum_ms(20),//Overlap size
-                    wav.getSampleNum_ms(15),//Seek for best overlap size
-                    &wavData[0],//Data to read from
-                    temp,//Data to send to
-                    wavData.size());//Length of data in
-
-                newCalc.sola();
-                solaTime = new float[(int)(wavData.size() / solaTimeScale * 1.1f)];
-
-
-                //Reconstructs time portion
-                for (int i = 0; i < size; i++) {
-                    solaTime[i] = (float)i / wav.getSampleRate();
-                }
-
-                //Converts to float for display in 20ms
-                solaBuffer = new float[size];
-                vectorStuff::floatData(temp, solaBuffer, size);
-
-                //Converts to float to display for entire section
-                int rightSize = (int)(wavData.size() / solaTimeScale);
-                dSolaBuffer = new float[rightSize];
-                dSolaTime = new float[rightSize];
-                //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
-                {
-                    int skip = 1;
-                    for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
-                        skip++;
-                    }
-                    std::vector<std::int16_t> vectorOut;
-                    int j = 0;
-                    for (int i = 0; i < rightSize; i++) {
-                        if (i % (skip) == 0) {
-                            dSolaBuffer[j] = solaBuffer[i];
-                            dSolaTime[j] = solaTime[i];
-                            j++;
-                        }
-                    }
-                }
-
-                
-                //Memory Cleanup
-                delete[] temp;
             }
-            
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(100.0f);
+            if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
+                if (solaTimeScale < 0) {
+                    solaTimeScale = 0.05f;
+                }
+            }
+            if (ImGui::Button("Plot SOLA 20ms")) {
+                flagRecalculateSola = true;
+                flag20msSola = true;
+            }
+
             ImGui::End();
         }
 
@@ -355,21 +312,35 @@ int main(int, char**)
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
-                //Grabs small segment of window
                 ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &trueValsFloat[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
                 ImPlot::EndPlot();
             }
+
+            if (flagSola&&flag20msSola) {
+                if (offsetUpdatedSola) { ImPlot::FitNextPlotAxes(); offsetUpdatedSola = false; }//recentres plot
+                if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " SOLA over 20ms").c_str(), "Time (s)", "Amplitude")) {
+                    //Grabs small segment of window
+                    int thisOffset = (int)((float)(sampleNum20ms * sampleOffset20ms) / oldSolaTimeScale);
+
+                    //Grabs small segment of window
+                    ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[thisOffset], &trueValsFloat[thisOffset], (int)((float)sampleNum20ms/ oldSolaTimeScale));
+                    ImPlot::EndPlot();
+                }
+            }
+
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
                 updateFourier = true;
+                offsetUpdatedSola = true;
                 int max = wav.getChannelLength() / sampleNum20ms;
-                if (sampleOffset20ms > max-1) {
-                    sampleOffset20ms = max-1;
+                if (sampleOffset20ms > max - 1) {
+                    sampleOffset20ms = max - 1;
                 }
                 else if (sampleOffset20ms < 0) {
                     sampleOffset20ms = 0;
                 }
             }
+
             ImGui::End();
         }
         
@@ -384,17 +355,17 @@ int main(int, char**)
                 )) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms/scale/2);//divided by two to only show positive freq values
+                ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms/2);//divided by two to only show positive freq values
                 ImPlot::EndPlot();
             }
             ImGui::End();
         }
         
-        if (plotWindowSOLA) {
+        if (plotWindowSOLA&&flagSola) {
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, (int)(wavData.size() / solaTimeScale));
+                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, (int)(wavData.size() / oldSolaTimeScale));
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -445,6 +416,75 @@ int main(int, char**)
             }
         }
 
+        if (flagRecalculateSola) {
+            //Memory cleanup
+            if (solaTime != nullptr) {
+                delete[] solaTime;
+            }
+            if (solaBuffer != nullptr) {
+                delete[] solaBuffer;
+            }
+            if (dSolaBuffer != nullptr) {
+                delete[] dSolaBuffer;
+            }
+            if (dSolaTime != nullptr) {
+                delete[] dSolaTime;
+            }
+
+            int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
+
+            //Expands solaBuffer
+            int16_t* temp = new int16_t[size];
+            //Sola with default values
+            SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
+                wav.getSampleNum_ms(100),//Processing sequence size
+                wav.getSampleNum_ms(20),//Overlap size
+                wav.getSampleNum_ms(15),//Seek for best overlap size
+                &wavData[0],//Data to read from
+                temp,//Data to send to
+                wavData.size());//Length of data in
+
+            newCalc.sola();
+            solaTime = new float[(int)(wavData.size() / solaTimeScale * 1.1f)];
+
+
+            //Reconstructs time portion
+            for (int i = 0; i < size; i++) {
+                solaTime[i] = (float)i / wav.getSampleRate();
+            }
+
+            //Converts to float for display in 20ms
+            solaBuffer = new float[size];
+            vectorStuff::floatData(temp, solaBuffer, size);
+
+            //Converts to float to display for entire section
+            int rightSize = (int)(wavData.size() / solaTimeScale);
+            dSolaBuffer = new float[rightSize];
+            dSolaTime = new float[rightSize];
+            //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
+            {
+                int skip = 1;
+                for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
+                    skip++;
+                }
+                std::vector<std::int16_t> vectorOut;
+                int j = 0;
+                for (int i = 0; i < rightSize; i++) {
+                    if (i % (skip) == 0) {
+                        dSolaBuffer[j] = solaBuffer[i];
+                        dSolaTime[j] = solaTime[i];
+                        j++;
+                    }
+                }
+            }
+
+            //Memory Cleanup
+            delete[] temp;
+            flagRecalculateSola = false;
+            flagSola = true;
+            oldSolaTimeScale = solaTimeScale;
+        }
+
 
         //moved from previous button, so multiple things can access it.
 
@@ -478,6 +518,7 @@ int main(int, char**)
             fourierBuffer = FFT::CArray();
             updateFourier = false;
             offsetUpdatedFreq = true;
+            offsetUpdatedFreqSola = true;
             plotFreq = true;
         }
         
