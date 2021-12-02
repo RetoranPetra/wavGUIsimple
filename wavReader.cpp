@@ -100,19 +100,19 @@ bool wavReader::openSpecific(string FileAddress) {
     else { cout << fileName + ".wav has failed to open, retry\n"; return false; }
 }
 //reads current 2 bytes then moves 2 bytes forwards, also converts to float instead of int
-float wavReader::sequentialBitRead16() {
+int16_t wavReader::sequentialBitRead16() {
     int16_t temp = *intReader;
     intReader++;
-    return int16toFloat(temp);
+    return temp;
 }
 //Used for getting less data for plots to reduce risk of memory problems
-float wavReader::skippingBitRead16(unsigned short offset) {
+int16_t wavReader::skippingBitRead16() {
     int16_t temp = *intReader;
-    intReader += offset;
-    return int16toFloat(temp);
+    intReader++;
+    return temp;
 }
 //Reads without moving forward
-float wavReader::bitRead16() {
+int16_t wavReader::bitRead16() {
     return *intReader;
 }
 //Increments without reading
@@ -124,32 +124,24 @@ void wavReader::resetRead() {
     intReader = reinterpret_cast<int16_t*>(buffer) + 22;
 }
 //Makes average, used for checking validity
-double wavReader::getAverage() {
-    double sum = 0.0;
+int wavReader::getAverage() {
+    int sum = 0;
     for (int i = 0; i < sampleNum; i++) {
-        float currentVal = int16toFloat(*intReader);
+        int16_t currentVal = *intReader;
         intReader++;
-        sum += fabs(currentVal);
+        sum += abs(currentVal);
     }
-    return sum / (double)sampleNum;
+    return sum / sampleNum;
 }
 //Send values to vector
-vector<float> wavReader::dataToVector(int skip) {
-    if (!isOpen) { return vector<float>(); }//maybe replace with exception
+vector<int16_t> wavReader::dataToVector() {
+    if (!isOpen) { return vector<int16_t>(); }//maybe replace with exception
     resetRead();
-    vector<float> temp;
-    for (int i = 0; i < sampleNum; i+=skip) {
-        temp.push_back(skippingBitRead16(skip));
+    vector<int16_t> temp;
+    for (int i = 0; i < sampleNum; i++) {
+        temp.push_back(sequentialBitRead16());
     }
     resetRead();
-    return temp;
-}
-vector<float> wavReader::timeToVector(int skip) {
-    if (!isOpen) { return vector<float>();}//maybe replace with exception
-    vector<float> temp;
-    for (int i = 0; i < sampleNum; i+=skip) {
-        temp.push_back((float)i / (float)sampleRate);
-    }
     return temp;
 }
 //Bunch of gets for private portions
@@ -172,6 +164,62 @@ int wavReader::getChannelLength() {
 bool wavReader::is_open() {
     return isOpen;
 }
-int wavReader::getSampleNum20ms() {
-    return numSamples20ms;
+int wavReader::getSampleNum_ms(int ms) {
+    return (int)(sampleRate * ms)*1000.0f;
+}
+
+namespace vectorStuff {
+
+//#define average
+
+//Averaging version of function evens out outliers, at expense of computing time. Looks odd though and not representative of the wave, even if more accurate at a small scale.
+#ifdef average
+    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
+        int sum = 0;
+        int absSum = 0;
+        int size = vectorIn.size();
+        int skip = 1;
+        for (int x = size; x > maxSize; x = size / skip) {
+            skip++;
+        }
+        //To be removed
+        cout << "Skip decided as" << skip << "\n";
+        std::vector<std::int16_t> vectorOut;
+        for (int i = 0; i < size; i++) {
+            sum += vectorIn[i];
+            absSum += abs(vectorIn[i]);
+            if (i % (skip) == 0) {
+                if (sum > 0) {
+                    vectorOut.push_back((int16_t)((absSum) / (skip)));
+                }
+                else {
+                    vectorOut.push_back((int16_t)((-absSum) / (skip)));
+                }
+                sum = 0;
+                absSum = 0;
+            }
+        }
+        return vectorOut;
+}
+#else
+    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
+        int size = vectorIn.size();
+        int skip = 1;
+        for (int x = size; x > maxSize; x = size / skip) {
+            skip++;
+        }
+        std::vector<std::int16_t> vectorOut;
+        for (int i = 0; i < size; i++) {
+            if (i % (skip) == 0) {
+                vectorOut.push_back(vectorIn[i]);
+            }
+        }
+        return vectorOut;
+}
+#endif
+    void floatData(int16_t* start, float* fstart, int length) {
+        for (int i = 0; i < length; i++) {
+            fstart[i] = (float)start[i] / pow(2, 15);
+        }
+    }
 }

@@ -1,4 +1,4 @@
-#include "gnuPlotter.h"
+//#include "gnuPlotter.h"
 #include "wavReader.h"
 //FFT Functions
 #include "FFT.h"
@@ -109,7 +109,7 @@ int main(int, char**)
     std::string currentFilePath;
 
     wavReader wav;
-    gnuPlotter gnu;
+    //gnuPlotter gnu;
 
     bool wavWindow = false;
     bool plotWindow = false;
@@ -123,8 +123,12 @@ int main(int, char**)
     int scale = 1;
     float solaTimeScale = 1.5;
 
-    vector<float> yVector;//Stores wavfile info
-    vector<float> xVector;
+    vector<int16_t> wavData;
+
+    float* yVals = nullptr;//Stores wavfile info
+    float* xVals = nullptr;
+    size_t valLength = 0;
+
     int sampleLimit = 1e6;
 
     float* solaBuffer = nullptr;
@@ -139,6 +143,7 @@ int main(int, char**)
 
     int sampleOffset20ms = 0;
     int sampleNum20ms = 0;
+    int sampleRate = 0;
 
     bool offsetUpdated = false;
     bool offsetUpdatedFreq = false;
@@ -196,7 +201,7 @@ int main(int, char**)
             ImGui::SetNextItemWidth(20.0f);
             if (ImGui::InputText("Drive", driveSelector, 2)) { //for some reason needs to be 2 long to store one character, might be end of string signifier
             }
-
+            /*
             if (ImGui::Button("Plot in GNUPLOT") && wav.is_open()) {
                 gnu.changeFile(wav.getFileName());
                 gnu.genDatFromWavAuto(wav);
@@ -204,35 +209,28 @@ int main(int, char**)
                 gnu.genDefaultPlt();
                 gnu.openPltWin();
             }
+            
             ImGui::SameLine();
             ss.str(std::string()); ss << "Previous Gnuplot accuracy: 1/" << gnu.getLastAutoScale();
             ImGui::Text(ss.str().c_str());
             if (ImGui::Button("Clean up GNUPLOT files")) {
                 gnu.cleanup();
             }
+            */
             if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
-                int channelLength = wav.getChannelLength();
-                scale = 1;
-                for (int x = channelLength; x > sampleLimit; x = channelLength / scale) {
-                    scale++;
-                }
-                cout << "Using scale: " << scale << "\n";
+                vector<int16_t> shrunken = vectorStuff::shrinkData(wavData, sampleLimit);
+                valLength = shrunken.size();
+                yVals = new float[valLength];
+                xVals = new float[valLength];
 
-                yVector = wav.dataToVector(scale);
-                xVector = wav.timeToVector(scale);
-                /*
-                cout << "y size: " << yVector.size() << "\nx size: " << xVector.size() << "\nChannel Size: " << wav.getChannelLength() << "\n";
-                cout << "y\n";
-                for (int i = 0; i < 1000; i++) {
-                    cout << yVector[i];
+                vectorStuff::floatData(&shrunken[0], yVals, valLength);
+                float ratio = (float)wavData.size() / (float)valLength;
+                for (int i = 0; i < valLength; i++) {
+                    xVals[i] = (float)(i + 1) * ratio / (float)sampleRate;
                 }
-                cout << "x\n";
-                for (int i = 0; i < 1000; i++) {
-                    cout << xVector[i] << "\n";
-                }
-                */
                 plotWindow = true;
             }
+            /*
             if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
                 scale = 1;
                 for (int x = sampleNum20ms; x > sampleLimit; x = sampleNum20ms / scale) {
@@ -243,19 +241,9 @@ int main(int, char**)
                 yVector = wav.dataToVector(scale);
                 xVector = wav.timeToVector(scale);
                 sampleOffset20ms = 0;
-                /*
-                cout << "y size: " << yVector.size() << "\nx size: " << xVector.size() << "\nChannel Size: " << wav.getChannelLength() << "\n";
-                cout << "y\n";
-                for (int i = 0; i < 1000; i++) {
-                    cout << yVector[i];
-                }
-                cout << "x\n";
-                for (int i = 0; i < 1000; i++) {
-                    cout << xVector[i] << "\n";
-                }
-                */
                 plotWindow20ms = true;
             }
+            */
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
@@ -264,6 +252,7 @@ int main(int, char**)
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
                 updateFourier = true;
             }
+            /*
             if (ImGui::Button("Apply Sola With Default Vals")) {
                 
                 plotWindowSOLA = true;
@@ -281,21 +270,19 @@ int main(int, char**)
                     solaTime[i] = (float)i / wav.getSampleRate();
                 }
             }
+            */
             ImGui::End();
         }
 
         if (plotWindow) {
             ImGui::Begin("Plotting Window");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str(), "Time (s)", "Amplitude")) {
-                //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                float* yVals = &yVector[0];
-                float* xVals = &xVector[0];
-                ImPlot::PlotStairs(wav.getFileName().c_str(), xVals, yVals, wav.getChannelLength()/scale);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), xVals, yVals, valLength);
                 ImPlot::EndPlot();
             }
             ImGui::End();
         }
-
+        /*
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
@@ -321,7 +308,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+        */
         if (plotFreq) {
             ImGui::Begin("Plotting Window Freq");
             if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
@@ -338,7 +325,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+        /*
         if (plotWindowSOLA) {
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+"SOLA'd").c_str(), "Time (s)", "Amplitude")) {
@@ -348,7 +335,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+        */
         //===========
         //Loop Checks
         //===========
@@ -372,11 +359,15 @@ int main(int, char**)
             cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
             fileSelectionBuffer = new char[fileBuffer]();
-            sampleNum20ms = wav.getSampleNum20ms();
+            sampleNum20ms = wav.getSampleNum_ms(20);
+            wavData = wav.dataToVector();
+            sampleRate = wav.getSampleRate();
         }
 
 
         //moved from previous button, so multiple things can access it.
+
+        /*
         if (updateFourier) {
             fourierBuffer.resize(sampleNum20ms);
             for (int i = 0; i < sampleNum20ms; i++) {
@@ -408,6 +399,7 @@ int main(int, char**)
             offsetUpdatedFreq = true;
             plotFreq = true;
         }
+        */
         // Rendering, must take place at the end of every loop
         ImGui::Render();
         int display_w, display_h;

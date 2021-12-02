@@ -29,14 +29,13 @@ public:
     ~wavReader();
     bool open(std::string filename); //best practice is to use an enum instead of a bool, but we'll just treat all successes as true
     bool openSpecific(std::string FileAddress);
-    float sequentialBitRead16();//scale shows how many to skip
-    float skippingBitRead16(unsigned short offset);
-    float bitRead16();
+    std::int16_t sequentialBitRead16();//scale shows how many to skip
+    std::int16_t skippingBitRead16();
+    std::int16_t bitRead16();
     void incrementReader16();
     void resetRead();
-    double getAverage();
-    std::vector<float> dataToVector(int skip);
-    std::vector<float> timeToVector(int skip);
+    int getAverage();
+    std::vector<std::int16_t> dataToVector();
 
     //std::vector<float> dataToVector20MS(int skip, int offset);
     //std::vector<float> timeToVector20MS(int skip, int offset);
@@ -47,5 +46,9 @@ public:
     std::string getFileName();
     int getChannelLength();
     bool is_open();
-    int getSampleNum20ms();
+    int getSampleNum_ms(int ms);
+};
+namespace vectorStuff {
+    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize);
+    void floatData(int16_t* start,float* fstart, int length);
 };

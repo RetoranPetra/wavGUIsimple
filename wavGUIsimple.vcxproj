@@ -148,14 +148,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="FFT.h" />
-    <ClInclude Include="gnuPlotter.h" />
     <ClInclude Include="L2DFileDialog.h" />
     <ClInclude Include="SOLA.h" />
     <ClInclude Include="wavReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FFT.cpp" />
-    <ClCompile Include="gnuPlotter.cpp" />
     <ClCompile Include="SOLA.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="wavReader.cpp" />
