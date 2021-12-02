@@ -131,7 +131,7 @@ int main(int, char**)
     float* xVals = nullptr;
     size_t valLength = 0;
 
-    int sampleLimit = 1e6;
+    int sampleLimit = 1e4;
 
     float* solaBuffer = nullptr;
     float* solaTime = nullptr;
@@ -382,11 +382,11 @@ int main(int, char**)
 
         //moved from previous button, so multiple things can access it.
 
-        /*
+        
         if (updateFourier) {
             fourierBuffer.resize(sampleNum20ms);
             for (int i = 0; i < sampleNum20ms; i++) {
-                fourierBuffer[i].real(yVector[i + sampleOffset20ms * sampleNum20ms]);
+                fourierBuffer[i].real(trueValsFloat[i + sampleOffset20ms * sampleNum20ms]);
             }
             //Applies fourier transform to buffer
             FFT::fft(fourierBuffer);
@@ -414,7 +414,7 @@ int main(int, char**)
             offsetUpdatedFreq = true;
             plotFreq = true;
         }
-        */
+        
         // Rendering, must take place at the end of every loop
         ImGui::Render();
         int display_w, display_h;
