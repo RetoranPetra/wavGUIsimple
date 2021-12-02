@@ -165,7 +165,7 @@ bool wavReader::is_open() {
     return isOpen;
 }
 int wavReader::getSampleNum_ms(int ms) {
-    return (int)(sampleRate * ms)*1000.0f;
+    return (int)(sampleRate * ms/1000);
 }
 
 namespace vectorStuff {

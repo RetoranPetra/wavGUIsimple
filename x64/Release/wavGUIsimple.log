@@ -1,12 +1,14 @@
-﻿  wavReader.cpp
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(31,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(70,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(168,34): warning C4244: 'return': conversion from 'float' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(204,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(220,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+﻿  Source.cpp
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(134,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(236,70): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(251,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(251,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(252,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(282,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(374,78): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  9 of 869 functions ( 1.0%) were compiled, the rest were copied from previous compilation.
-    7 functions were new in current compilation
-    78 functions had inline decision re-evaluated but remain unchanged
+  4 of 870 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    9 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe

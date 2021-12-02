@@ -124,6 +124,8 @@ int main(int, char**)
     float solaTimeScale = 1.5;
 
     vector<int16_t> wavData;
+    float* wavTime = nullptr;
+    float* trueValsFloat = nullptr;
 
     float* yVals = nullptr;//Stores wavfile info
     float* xVals = nullptr;
@@ -220,30 +222,30 @@ int main(int, char**)
             if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
                 vector<int16_t> shrunken = vectorStuff::shrinkData(wavData, sampleLimit);
                 valLength = shrunken.size();
+
+                if (yVals != nullptr) {
+                    delete[] yVals;
+                }
+                if (xVals != nullptr) {
+                    delete[] xVals;
+                }
+
                 yVals = new float[valLength];
                 xVals = new float[valLength];
 
                 vectorStuff::floatData(&shrunken[0], yVals, valLength);
                 float ratio = (float)wavData.size() / (float)valLength;
                 for (int i = 0; i < valLength; i++) {
-                    xVals[i] = (float)(i + 1) * ratio / (float)sampleRate;
+                    xVals[i] = (float)(i+1) * ratio / (float)sampleRate;
                 }
                 plotWindow = true;
             }
-            /*
+            
             if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
-                scale = 1;
-                for (int x = sampleNum20ms; x > sampleLimit; x = sampleNum20ms / scale) {
-                    scale++;
-                }
-                cout << "Using scale: " << scale << "\n";
-
-                yVector = wav.dataToVector(scale);
-                xVector = wav.timeToVector(scale);
                 sampleOffset20ms = 0;
                 plotWindow20ms = true;
             }
-            */
+            
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
@@ -282,23 +284,19 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        /*
+        
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
-                
-                //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                //cout << "Size of 20ms is: " << size << "\n";
-                float* yVals = &yVector[sampleNum20ms *sampleOffset20ms];
-                float* xVals = &xVector[sampleNum20ms *sampleOffset20ms];
-                ImPlot::PlotLine(wav.getFileName().c_str(), xVals, yVals, sampleNum20ms / scale);
+                //Grabs small segment of window
+                ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &trueValsFloat[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
                 ImPlot::EndPlot();
             }
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
                 offsetUpdated = true;
                 updateFourier = true;
-                int max = wav.getChannelLength() / sampleNum20ms /scale;
+                int max = wav.getChannelLength() / sampleNum20ms;
                 if (sampleOffset20ms > max-1) {
                     sampleOffset20ms = max-1;
                 }
@@ -308,7 +306,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        */
+        
         if (plotFreq) {
             ImGui::Begin("Plotting Window Freq");
             if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
@@ -362,6 +360,23 @@ int main(int, char**)
             sampleNum20ms = wav.getSampleNum_ms(20);
             wavData = wav.dataToVector();
             sampleRate = wav.getSampleRate();
+
+            //Initialisation/cleanup of pointers
+            if (wavTime != nullptr) {
+                delete[] wavTime;
+            }
+            if (trueValsFloat != nullptr) {
+                delete[] trueValsFloat;
+            }
+            wavTime = new float[wavData.size()];
+            trueValsFloat = new float[wavData.size()];
+
+            vectorStuff::floatData(&wavData[0], trueValsFloat, wavData.size());
+            //Makes time for plotting/calculations
+
+            for (int i = 0; i < wavData.size(); i++) {
+                wavTime[i] = (float)(i)/(float)sampleRate;
+            }
         }
 
 
