@@ -145,6 +145,7 @@ int main(int, char**)
     //Stores values used in display of sola data
     float* dSolaBuffer = nullptr;
     float* dSolaTime = nullptr;
+    int dSolaLength = 0;//unused atm
 
 
     //Buffers for fourier values for original 20ms
@@ -287,8 +288,8 @@ int main(int, char**)
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
-                if (solaTimeScale < 0) {
-                    solaTimeScale = 0.05f;
+                if (solaTimeScale < 1) {
+                    solaTimeScale = 1.0f;
                 }
             }
             if (ImGui::Button("Plot SOLA 20ms")) {
@@ -365,7 +366,7 @@ int main(int, char**)
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, (int)(wavData.size() / oldSolaTimeScale));
+                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, dSolaLength);
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -459,21 +460,21 @@ int main(int, char**)
 
             //Converts to float to display for entire section
             int rightSize = (int)(wavData.size() / solaTimeScale);
-            dSolaBuffer = new float[rightSize];
-            dSolaTime = new float[rightSize];
+            dSolaBuffer = new float[sampleLimit];
+            dSolaTime = new float[sampleLimit];
             //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
             {
                 int skip = 1;
                 for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
                     skip++;
                 }
-                std::vector<std::int16_t> vectorOut;
                 int j = 0;
                 for (int i = 0; i < rightSize; i++) {
                     if (i % (skip) == 0) {
                         dSolaBuffer[j] = solaBuffer[i];
                         dSolaTime[j] = solaTime[i];
                         j++;
+                        dSolaLength = j+1;
                     }
                 }
             }
