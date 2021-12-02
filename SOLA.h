@@ -14,14 +14,14 @@ private:
 	int processDistance;
 
 	//Pointers to data
-	float* input;
+	int16_t* input;
 	int inputLength;
-	float* output;
+	int16_t* output;
 
 	//Sola can be implemented with ints, as it is simple addition for the most part, but our case uses floats as that's what wavReader outputs.
-	void overlap(float* output, float* previous, float* current);
-	int seekOverlap(float* previous, float* current);
+	void overlap(int16_t* output, int16_t* previous, int16_t* current);
+	int seekOverlap(int16_t* previous, int16_t* current);
 public:
-	SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, float* l_input,float* l_output, int l_inputLength);
+	SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, int16_t* l_input, int16_t* l_output, int l_inputLength);
 	void sola(void);
 };

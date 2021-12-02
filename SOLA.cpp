@@ -1,6 +1,6 @@
 #include "SOLA.h"
 
-void SOLA::overlap(float* output, float* previous, float* current) {
+void SOLA::overlap(int16_t* output, int16_t* previous, int16_t* current) {
 	for (int i = 0; i < overlapSize; i++) {
 		//Computes overlap linearly between the two segments
 		//previous starts at strength of 1, decays to 0
@@ -9,7 +9,7 @@ void SOLA::overlap(float* output, float* previous, float* current) {
 	}
 }
 
-int SOLA::seekOverlap(float* previous, float* current) {
+int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 	//Uses cross-correlation to find the optimal overlapping offset within the window, least differences between signals.
 	int optOffset = 0;							//Stores value of optimal offset
 	float optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0
@@ -43,10 +43,10 @@ int SOLA::seekOverlap(float* previous, float* current) {
 
 void SOLA::sola() {
 	int numSamplesOut = 0;
-	float* seq_offset = input;
-	float* prev_offset = nullptr;
-	float* l_input = input;
-	float* l_output = output;
+	int16_t* seq_offset = input;
+	int16_t* prev_offset = nullptr;
+	int16_t* l_input = input;
+	int16_t* l_output = output;
 
 	//Reduces over time, basically counts things left in input
 	int numSamplesIn = inputLength;
@@ -54,7 +54,7 @@ void SOLA::sola() {
 	//Main loop, does SOLA stuff.
 	while (numSamplesIn >processDistance+seekWindow) {
 		//Copies flat to output vector
-		memcpy(l_output, seq_offset, flatDuration * sizeof(float)); //Need to use sizeof due to this being a legacy C function, doesn't do it automatically
+		memcpy(l_output, seq_offset, flatDuration * sizeof(int16_t)); //Need to use sizeof due to this being a legacy C function, doesn't do it automatically
 
 		//Sets previous to end of current flat segment
 		prev_offset = seq_offset + flatDuration;
@@ -85,14 +85,17 @@ void SOLA::sola() {
 SOLA::SOLA(float l_timeScale,
 	int l_sequenceSize,
 	int l_overlapSize,
-	int l_seekWindow,
-	float* l_input,float* l_output,int l_inputLength) {
+	int l_seekWindow, 
+	int16_t* l_input, int16_t* l_output,int l_inputLength) {
 	timeScale = l_timeScale;
 	sequenceSize = l_sequenceSize;
+	overlapSize = l_overlapSize;
 	seekWindow = l_seekWindow;
 	input = l_input;
 	inputLength = l_inputLength;
 	output = l_output;
+	
+
 
 	flatDuration = (sequenceSize - 2 * overlapSize);
 	processDistance = (int)((sequenceSize - overlapSize) * timeScale);

@@ -123,33 +123,50 @@ int main(int, char**)
     int scale = 1;
     float solaTimeScale = 1.5;
 
+    //Max number of samples allowed in plots
+    int sampleLimit = 1e4;
+
+    //Stores wavdata
     vector<int16_t> wavData;
+    //Stores wavdata in float format for reading by 20ms window
     float* wavTime = nullptr;
     float* trueValsFloat = nullptr;
 
+    //Stores values to be displayed by entire plot
     float* yVals = nullptr;//Stores wavfile info
     float* xVals = nullptr;
     size_t valLength = 0;
 
-    int sampleLimit = 1e4;
-
+    //Stores values directly gotten from applying sola to the data
     float* solaBuffer = nullptr;
     float* solaTime = nullptr;
 
+    //Stores values used in display of sola data
+    float* dSolaBuffer = nullptr;
+    float* dSolaTime = nullptr;
+
+
+    //Buffers for fourier values for original 20ms
     FFT::CArray fourierBuffer;
     double* fftYVals = nullptr; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
     double* fftXVals = nullptr;
 
+    //Buffers for fourier values for the SOLA'd 20ms
     double* fftYVals2 = nullptr;//Used for fft of sola algorithm'd portion
     double* fftXVals2 = nullptr;
 
+    //Pointers for controlling 20ms sample location
     int sampleOffset20ms = 0;
     int sampleNum20ms = 0;
+
+    //Stores samplerate so doesn't have to be called multiple times
     int sampleRate = 0;
 
+    //Bools that store state of whether windows have been updated, and therefore need recentering again.
     bool offsetUpdated = false;
     bool offsetUpdatedFreq = false;
 
+    //Bool that makes the fourier values update
     bool updateFourier = false;
 
     //Start of code that matters
@@ -254,25 +271,29 @@ int main(int, char**)
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
                 updateFourier = true;
             }
-            /*
+            
             if (ImGui::Button("Apply Sola With Default Vals")) {
                 
                 plotWindowSOLA = true;
                 //Expands solaBuffer
-                solaBuffer = new float[(int)(yVector.size()/ solaTimeScale *1.1f)];
+                int16_t*temp = new int16_t[(int)(wavData.size()/ solaTimeScale *1.1f)];
                 //Sola with default values
-                SOLA newCalc(solaTimeScale,4410,882,662,&yVector[0],solaBuffer,yVector.size());
+                SOLA newCalc(solaTimeScale,4410,882,662,&wavData[0],temp,wavData.size());
                 newCalc.sola();
-                solaTime = new float[(int)(yVector.size() / solaTimeScale * 1.1f)];
+                solaTime = new float[(int)(wavData.size() / solaTimeScale * 1.1f)];
 
 
                 //Reconstructs time portion
-                int size = (int)(yVector.size() / solaTimeScale * 1.1f);
+                int size = (int)(wavData.size() / solaTimeScale * 1.1f);
                 for (int i = 0; i < size; i++) {
                     solaTime[i] = (float)i / wav.getSampleRate();
                 }
+
+                //Converts to float for display
+                solaBuffer = new float[size];
+                vectorStuff::floatData(temp, solaBuffer, size);
             }
-            */
+            
             ImGui::End();
         }
 
@@ -323,17 +344,17 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        /*
+        
         if (plotWindowSOLA) {
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+"SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), solaTime, solaBuffer, (int)(yVector.size() / solaTimeScale));
+                ImPlot::PlotStairs(wav.getFileName().c_str(), solaTime, solaBuffer, (int)(wavData.size() / solaTimeScale));
                 ImPlot::EndPlot();
             }
             ImGui::End();
         }
-        */
+        
         //===========
         //Loop Checks
         //===========
