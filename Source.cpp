@@ -280,6 +280,12 @@ int main(int, char**)
                 if (solaBuffer != nullptr) {
                     delete[] solaBuffer;
                 }
+                if (dSolaBuffer != nullptr) {
+                    delete[] dSolaBuffer;
+                }
+                if (dSolaTime != nullptr) {
+                    delete[] dSolaTime;
+                }
 
                 int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
                 plotWindowSOLA = true;
@@ -303,9 +309,31 @@ int main(int, char**)
                     solaTime[i] = (float)i / wav.getSampleRate();
                 }
 
-                //Converts to float for display
+                //Converts to float for display in 20ms
                 solaBuffer = new float[size];
                 vectorStuff::floatData(temp, solaBuffer, size);
+
+                //Converts to float to display for entire section
+                int rightSize = (int)(wavData.size() / solaTimeScale);
+                dSolaBuffer = new float[rightSize];
+                dSolaTime = new float[rightSize];
+                //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
+                {
+                    int skip = 1;
+                    for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
+                        skip++;
+                    }
+                    std::vector<std::int16_t> vectorOut;
+                    int j = 0;
+                    for (int i = 0; i < rightSize; i++) {
+                        if (i % (skip) == 0) {
+                            dSolaBuffer[j] = solaBuffer[i];
+                            dSolaTime[j] = solaTime[i];
+                            j++;
+                        }
+                    }
+                }
+
                 
                 //Memory Cleanup
                 delete[] temp;
@@ -364,9 +392,9 @@ int main(int, char**)
         
         if (plotWindowSOLA) {
             ImGui::Begin("SOLA");
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+"SOLA'd").c_str(), "Time (s)", "Amplitude")) {
+            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), solaTime, solaBuffer, (int)(wavData.size() / solaTimeScale));
+                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, (int)(wavData.size() / solaTimeScale));
                 ImPlot::EndPlot();
             }
             ImGui::End();
