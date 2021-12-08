@@ -130,32 +130,32 @@ int main(int, char**)
     //Stores wavdata
     vector<int16_t> wavData;
     //Stores wavdata in float format for reading by 20ms window
-    float* wavTime = nullptr;
-    float* trueValsFloat = nullptr;
+    vector<float> wavTime;
+    vector<float> trueValsFloat;
 
     //Stores values to be displayed by entire plot
-    float* yVals = nullptr;//Stores wavfile info
-    float* xVals = nullptr;
+    vector<float> yVals;//Stores wavfile info
+    vector<float> xVals;
     size_t valLength = 0;
 
     //Stores values directly gotten from applying sola to the data
-    float* solaBuffer = nullptr;
-    float* solaTime = nullptr;
+    vector<float> solaBuffer;
+    vector<float> solaTime;
 
     //Stores values used in display of sola data
-    float* dSolaBuffer = nullptr;
-    float* dSolaTime = nullptr;
+    vector<float> dSolaBuffer;
+    vector<float> dSolaTime;
     int dSolaLength = 0;//unused atm
 
 
     //Buffers for fourier values for original 20ms
     FFT::CArray fourierBuffer;
-    double* fftYVals = nullptr; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
-    double* fftXVals = nullptr;
+    vector<double> fftYVals; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
+    vector<double> fftXVals;
 
     //Buffers for fourier values for the SOLA'd 20ms
-    double* fftYVals2 = nullptr;//Used for fft of sola algorithm'd portion
-    double* fftXVals2 = nullptr;
+    vector<double> fftYVals2;//Used for fft of sola algorithm'd portion
+    vector<double> fftXVals2;
 
     //Pointers for controlling 20ms sample location
     int sampleOffset20ms = 0;
@@ -248,18 +248,11 @@ int main(int, char**)
             if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
                 vector<int16_t> shrunken = vectorStuff::shrinkData(wavData, sampleLimit);
                 valLength = shrunken.size();
+                yVals.clear(); xVals.clear();
+                yVals.resize(valLength);
+                xVals.resize(valLength);
 
-                if (yVals != nullptr) {
-                    delete[] yVals;
-                }
-                if (xVals != nullptr) {
-                    delete[] xVals;
-                }
-
-                yVals = new float[valLength];
-                xVals = new float[valLength];
-
-                vectorStuff::floatData(&shrunken[0], yVals, valLength);
+                vectorStuff::floatData(&shrunken[0], &yVals[0], valLength);
                 float ratio = (float)wavData.size() / (float)valLength;
                 for (int i = 0; i < valLength; i++) {
                     xVals[i] = (float)(i+1) * ratio / (float)sampleRate;
@@ -303,7 +296,7 @@ int main(int, char**)
         if (plotWindow) {
             ImGui::Begin("Plotting Window");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str(), "Time (s)", "Amplitude")) {
-                ImPlot::PlotStairs(wav.getFileName().c_str(), xVals, yVals, valLength);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), &xVals[0], &yVals[0], valLength);
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -356,7 +349,7 @@ int main(int, char**)
                 )) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
                 //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine(wav.getFileName().c_str(), fftXVals, fftYVals, sampleNum20ms/2);//divided by two to only show positive freq values
+                ImPlot::PlotLine(wav.getFileName().c_str(), &fftXVals[0], &fftYVals[0], sampleNum20ms/2);//divided by two to only show positive freq values
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -366,7 +359,7 @@ int main(int, char**)
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), dSolaTime, dSolaBuffer, dSolaLength);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), &dSolaTime[0], &dSolaBuffer[0], dSolaLength);
                 ImPlot::EndPlot();
             }
             ImGui::End();
@@ -400,16 +393,11 @@ int main(int, char**)
             sampleRate = wav.getSampleRate();
 
             //Initialisation/cleanup of pointers
-            if (wavTime != nullptr) {
-                delete[] wavTime;
-            }
-            if (trueValsFloat != nullptr) {
-                delete[] trueValsFloat;
-            }
-            wavTime = new float[wavData.size()];
-            trueValsFloat = new float[wavData.size()];
+            wavTime.clear(); trueValsFloat.clear();
+            wavTime.resize(wavData.size());
+            trueValsFloat.resize(wavData.size());
 
-            vectorStuff::floatData(&wavData[0], trueValsFloat, wavData.size());
+            vectorStuff::floatData(&wavData[0], &trueValsFloat[0], wavData.size());
             //Makes time for plotting/calculations
 
             for (int i = 0; i < wavData.size(); i++) {
@@ -418,20 +406,6 @@ int main(int, char**)
         }
 
         if (flagRecalculateSola) {
-            //Memory cleanup
-            if (solaTime != nullptr) {
-                delete[] solaTime;
-            }
-            if (solaBuffer != nullptr) {
-                delete[] solaBuffer;
-            }
-            if (dSolaBuffer != nullptr) {
-                delete[] dSolaBuffer;
-            }
-            if (dSolaTime != nullptr) {
-                delete[] dSolaTime;
-            }
-
             int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
@@ -446,7 +420,8 @@ int main(int, char**)
                 wavData.size());//Length of data in
 
             newCalc.sola();
-            solaTime = new float[(int)(wavData.size() / solaTimeScale * 1.1f)];
+            solaTime.clear();
+            solaTime.resize(size);
 
 
             //Reconstructs time portion
@@ -455,13 +430,16 @@ int main(int, char**)
             }
 
             //Converts to float for display in 20ms
-            solaBuffer = new float[size];
-            vectorStuff::floatData(temp, solaBuffer, size);
+            solaBuffer.clear();
+            solaBuffer.resize(size);
+            vectorStuff::floatData(temp, &solaBuffer[0], size);
 
             //Converts to float to display for entire section
             int rightSize = (int)(wavData.size() / solaTimeScale);
-            dSolaBuffer = new float[sampleLimit];
-            dSolaTime = new float[sampleLimit];
+            dSolaBuffer.clear();
+            dSolaTime.clear();
+            dSolaBuffer.resize(sampleLimit);
+            dSolaTime.resize(sampleLimit);
             //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
             {
                 int skip = 1;
@@ -499,8 +477,10 @@ int main(int, char**)
             FFT::fft(fourierBuffer);
 
             //initialises arrays for xvals
-            fftXVals = new double[sampleNum20ms];
-            fftYVals = new double[sampleNum20ms];
+            fftXVals.clear();
+            fftYVals.clear();
+            fftXVals.resize(sampleNum20ms);
+            fftYVals.resize(sampleNum20ms);
 
             int sampleFreq = wav.getSampleRate();
 
