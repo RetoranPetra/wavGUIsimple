@@ -22,12 +22,12 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 
 	//find optimal overlap offset within window
 	//iterates through possible places for overlap
-	for (int i = 0; i < overlapSize; i++) {
+	for (int i = 0; i < seekWindow; i++) {
 		float thisCorrelation = 0;
 
 		for (int j = 0; j < overlapSize; j++) {
 			//makes value for comparison, greater values show greater correlation
-			thisCorrelation += current[i + j] * temp[j];
+			thisCorrelation += (float)current[i + j] * temp[j];
 		}
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
@@ -43,13 +43,13 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 
 void SOLA::sola() {
 	int numSamplesOut = 0;
-	int16_t* seq_offset = input;
+	int16_t* seq_offset = &input[0];
 	int16_t* prev_offset = nullptr;
-	int16_t* l_input = input;
-	int16_t* l_output = output;
+	int16_t* l_input = &input[0];
+	int16_t* l_output = &output[0];
 
 	//Reduces over time, basically counts things left in input
-	int numSamplesIn = inputLength;
+	int numSamplesIn = inputLength-1;
 
 	//Main loop, does SOLA stuff.
 	while (numSamplesIn >processDistance+seekWindow) {
@@ -60,7 +60,8 @@ void SOLA::sola() {
 		prev_offset = seq_offset + flatDuration;
 
 		//input pointer update to new location of processing sequence
-		l_input += (processDistance - overlapSize);
+		l_input += processDistance;
+		l_input += -overlapSize;
 
 		//Updates sequence offset to the optimal place using seekOverlap
 		seq_offset = l_input + seekOverlap(prev_offset, l_input);
@@ -73,7 +74,8 @@ void SOLA::sola() {
 		l_input += overlapSize;
 
 		//Output pointer needs to be different, due to initial memcpy
-		l_output += sequenceSize -overlapSize;
+		l_output += sequenceSize;
+		l_output += -overlapSize;
 
 		//Update counters to match new values
 		numSamplesOut += sequenceSize - overlapSize;
@@ -82,18 +84,22 @@ void SOLA::sola() {
 
 }
 
-SOLA::SOLA(float l_timeScale,
-	int l_sequenceSize,
-	int l_overlapSize,
-	int l_seekWindow, 
-	int16_t* l_input, int16_t* l_output,int l_inputLength) {
+void SOLA::reSample() {//Untested, need to check later
+	float ratio = (float)output.size() / (float)input.size();
+	float sum = 0.0f;
+	for (int i = 0; i < input.size(),sum<output.size(); i++) {
+		sum += ratio;
+		output[i] = output[(int)sum];
+	}
+	output.resize(input.size());
+}
+
+SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
 	timeScale = l_timeScale;
 	sequenceSize = l_sequenceSize;
 	overlapSize = l_overlapSize;
 	seekWindow = l_seekWindow;
-	input = l_input;
-	inputLength = l_inputLength;
-	output = l_output;
+	inputLength = input.size();
 	
 
 

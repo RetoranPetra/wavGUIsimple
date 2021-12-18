@@ -281,9 +281,11 @@ int main(int, char**)
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
+                /*
                 if (solaTimeScale < 1) {
                     solaTimeScale = 1.0f;
                 }
+                */
             }
             if (ImGui::Button("Plot SOLA 20ms")) {
                 flagRecalculateSola = true;
@@ -299,6 +301,9 @@ int main(int, char**)
                 ImPlot::PlotStairs(wav.getFileName().c_str(), &xVals[0], &yVals[0], valLength);
                 ImPlot::EndPlot();
             }
+            std::stringstream ss;
+            ss << "Samples: " << trueValsFloat.size();
+            ImGui::Text(ss.str().c_str());
             ImGui::End();
         }
         
@@ -362,6 +367,9 @@ int main(int, char**)
                 ImPlot::PlotStairs(wav.getFileName().c_str(), &dSolaTime[0], &dSolaBuffer[0], dSolaLength);
                 ImPlot::EndPlot();
             }
+            std::stringstream ss;
+            ss << "Samples: " << solaBuffer.size();
+            ImGui::Text(ss.str().c_str());
             ImGui::End();
         }
         
@@ -406,18 +414,20 @@ int main(int, char**)
         }
 
         if (flagRecalculateSola) {
-            int size = (int)(wavData.size() / solaTimeScale * 1.1f); //1.1f than it needs to be to account for errors in algorithm
+            int size = (int)(wavData.size() / solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
-            int16_t* temp = new int16_t[size];
+            std::vector<int16_t> temp;
+            temp.resize(size);
+
             //Sola with default values
             SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
-                wav.getSampleNum_ms(100),//Processing sequence size
+                wav.getSampleNum_ms(300),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
-                &wavData[0],//Data to read from
-                temp,//Data to send to
-                wavData.size());//Length of data in
+                wavData,//Data to read from
+                temp//Data to send to
+                );//Length of data in
 
             newCalc.sola();
             solaTime.clear();
@@ -432,7 +442,7 @@ int main(int, char**)
             //Converts to float for display in 20ms
             solaBuffer.clear();
             solaBuffer.resize(size);
-            vectorStuff::floatData(temp, &solaBuffer[0], size);
+            vectorStuff::floatData(&temp[0], &solaBuffer[0], size);
 
             //Converts to float to display for entire section
             int rightSize = (int)(wavData.size() / solaTimeScale);
@@ -442,13 +452,14 @@ int main(int, char**)
             dSolaTime.resize(sampleLimit);
             //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
             {
+
                 int skip = 1;
                 for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
                     skip++;
                 }
                 int j = 0;
                 for (int i = 0; i < rightSize; i++) {
-                    if (i % (skip) == 0) {
+                    if (i % (skip) == 0 || i == 0) {
                         dSolaBuffer[j] = solaBuffer[i];
                         dSolaTime[j] = solaTime[i];
                         j++;
@@ -458,7 +469,6 @@ int main(int, char**)
             }
 
             //Memory Cleanup
-            delete[] temp;
             flagRecalculateSola = false;
             flagSola = true;
             oldSolaTimeScale = solaTimeScale;
@@ -484,8 +494,6 @@ int main(int, char**)
 
             int sampleFreq = wav.getSampleRate();
 
-            
-            //Non Log
             //convert to x values
             for (int i = 0; i < sampleNum20ms; i++) {
                 fftXVals[i] = (double)(i * sampleFreq) / (double)sampleNum20ms;

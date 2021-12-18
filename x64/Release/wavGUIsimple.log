@@ -4,12 +4,11 @@ C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(255,74): warnin
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(270,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(270,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(271,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(299,94): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(399,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(419,31): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(301,94): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(408,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  112 of 1027 functions (10.9%) were compiled, the rest were copied from previous compilation.
-    104 functions were new in current compilation
-    131 functions had inline decision re-evaluated but remain unchanged
+  1 of 1036 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe
