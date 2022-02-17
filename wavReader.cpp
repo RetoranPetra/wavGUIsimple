@@ -93,6 +93,35 @@ bool wavReader::openSpecific(string FileAddress) {
     }
     else { cout << fileName + ".wav has failed to open, retry\n"; return false; }
 }
+
+bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
+    fout.open("out.wav", ios::binary);
+    if (fout.is_open()) {
+        cout << fileName + ".wav has been opened successfully\n";
+        //buffer creation and filling
+        outBuffer = new char[fileLengthBytes];
+        memcpy(outBuffer, buffer, fileLengthBytes);
+        /*
+        for (int i = 0; i < vectorIn.size(); i++) {
+            //outBuffer[44 + i] = vectorIn[i];
+            outBuffer[44 + i] = 0;
+        }
+        */
+        //for (int i = 0; i < vectorIn.size(); i++) {
+        //    cout << vectorIn[i]<<"\n";
+        //}
+        memcpy(&outBuffer[44], &vectorIn[0], vectorIn.size());
+        cout << "Writing " << fileLengthBytes << " bytes...\n";
+        fout.write(outBuffer, fileLengthBytes);
+        fout.close();
+        delete[] outBuffer;
+        if (fout) { cout << "Write Success!\n"; }
+        else { cout << "Write Failure!\n"; return false; }
+
+        return true;
+    }
+    else { cout << fileName + ".wav has failed to open, retry\n"; return false; }
+}
 //reads current 2 bytes then moves 2 bytes forwards, also converts to float instead of int
 int16_t wavReader::sequentialBitRead16() {
     int16_t temp = *intReader;

@@ -140,6 +140,7 @@ int main(int, char**)
 
     //Stores values directly gotten from applying sola to the data
     vector<float> solaBuffer;
+    vector<int16_t> rawSolaBuffer;
     vector<float> solaTime;
 
     //Stores values used in display of sola data
@@ -292,6 +293,10 @@ int main(int, char**)
                 flag20msSola = true;
             }
 
+            if (ImGui::Button("Write to temp.wav")) {
+                wav.writeBuffer(rawSolaBuffer);
+            }
+
             ImGui::End();
         }
 
@@ -418,16 +423,15 @@ int main(int, char**)
             int size = (int)(wavData.size() / solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
-            std::vector<int16_t> temp;
-            temp.resize(size);
-
+            rawSolaBuffer.resize(size);
+            rawSolaBuffer.clear();
             //Sola with default values
             SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
                 wav.getSampleNum_ms(300),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
                 wavData,//Data to read from
-                temp//Data to send to
+                rawSolaBuffer//Data to send to
                 );//Length of data in
 
             newCalc.sola();
@@ -443,10 +447,10 @@ int main(int, char**)
             //Converts to float for display in 20ms
             solaBuffer.clear();
             solaBuffer.resize(size);
-            vectorStuff::floatData(&temp[0], &solaBuffer[0], size);
+            vectorStuff::floatData(&rawSolaBuffer[0], &solaBuffer[0], size);
 
             //Converts to float to display for entire section
-            int rightSize = (int)(wavData.size() / solaTimeScale);
+            int rightSize = size;
             dSolaBuffer.clear();
             dSolaTime.clear();
             dSolaBuffer.resize(sampleLimit);

@@ -9,9 +9,11 @@ private:
     std::string fileName;
 
     std::ifstream fin;
+    std::ofstream fout;
     bool isOpen;
 
     char* buffer;
+    char* outBuffer;
     int16_t* intReader;
 
     int numSamples20ms;
@@ -36,7 +38,7 @@ public:
     void resetRead();
     int getAverage();
     std::vector<std::int16_t> dataToVector();
-
+    bool writeBuffer(std::vector<int16_t>&vectorIn);
     //std::vector<float> dataToVector20MS(int skip, int offset);
     //std::vector<float> timeToVector20MS(int skip, int offset);
 
