@@ -29,7 +29,7 @@ bool wavReader::open(string filename) {//Returns true on success, false on failu
         //file length info
         fin.seekg(0, ios::end);
         fileLengthBytes = fin.tellg();
-        sampleNum = (fileLengthBytes - 44) / 2;
+        sampleNum = (fileLengthBytes - 44) / 2;//In bytes
         fin.seekg(0, ios::beg);
 
         //buffer creation and filling
@@ -43,13 +43,10 @@ bool wavReader::open(string filename) {//Returns true on success, false on failu
 
         //Extracting basic variables from wav
         intReader = reinterpret_cast<int16_t*>(buffer);
-        intReader += 11;
-        channels = *intReader;
-        intReader++;
-        sampleRate = *reinterpret_cast<int32_t*>(intReader);
-        intReader += 5;
-        sampleBits = *intReader;
-        intReader += 5;//Sets position to start of data
+        channels = intReader[11];
+        sampleRate = *reinterpret_cast<int32_t*>(&intReader[12]);
+        sampleBits = intReader[17];
+        intReader = &intReader[22];//Sets position to start of data
         //Output important info
         cout << "Channels: " << channels << "\nSamplerate: " << sampleRate << "\nSamplebits: " << sampleBits << "\nSamplenum: " << sampleNum << "\n";
         channelLength = sampleNum / channels;
@@ -82,13 +79,10 @@ bool wavReader::openSpecific(string FileAddress) {
 
         //Extracting basic variables from wav
         intReader = reinterpret_cast<int16_t*>(buffer);
-        intReader += 11;
-        channels = *intReader;
-        intReader++;
-        sampleRate = *reinterpret_cast<int32_t*>(intReader);
-        intReader += 5;
-        sampleBits = *intReader;
-        intReader += 5;//Sets position to start of data
+        channels = intReader[11];
+        sampleRate = *reinterpret_cast<int32_t*>(&intReader[12]);
+        sampleBits = intReader[17];
+        intReader = &intReader[22];//Sets position to start of data
         //Output important info
         cout << "Channels: " << channels << "\nSamplerate: " << sampleRate << "\nSamplebits: " << sampleBits << "\nSamplenum: " << sampleNum << "\n";
         channelLength = sampleNum / channels;

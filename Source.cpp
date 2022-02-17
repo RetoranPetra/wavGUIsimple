@@ -318,11 +318,12 @@ int main(int, char**)
             if (flagSola&&flag20msSola) {
                 if (offsetUpdatedSola) { ImPlot::FitNextPlotAxes(); offsetUpdatedSola = false; }//recentres plot
                 if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " SOLA over 20ms").c_str(), "Time (s)", "Amplitude")) {
+                    /*
                     //Grabs small segment of window
                     int thisOffset = (int)((float)(sampleNum20ms * sampleOffset20ms) / oldSolaTimeScale);
-
+                    */
                     //Grabs small segment of window
-                    ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[thisOffset], &trueValsFloat[thisOffset], (int)((float)sampleNum20ms/ oldSolaTimeScale));
+                    ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &solaBuffer[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
                     ImPlot::EndPlot();
                 }
             }
