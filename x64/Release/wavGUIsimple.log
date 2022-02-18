@@ -1,8 +1,8 @@
 ﻿  wavReader.cpp
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(31,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(67,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(229,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(245,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(240,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(256,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Generating code
   2 of 1046 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
