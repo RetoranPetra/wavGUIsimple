@@ -425,6 +425,7 @@ int main(int, char**)
             //Expands solaBuffer
             rawSolaBuffer.resize(size);
             rawSolaBuffer.clear();
+            
             //Sola with default values
             SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
                 wav.getSampleNum_ms(300),//Processing sequence size
@@ -433,8 +434,13 @@ int main(int, char**)
                 wavData,//Data to read from
                 rawSolaBuffer//Data to send to
                 );//Length of data in
-
             newCalc.sola();
+
+            for (int i = 3000; i < 3100; i++) {
+                cout << wavData[i] << " " << rawSolaBuffer[i] << "\n";
+            }
+
+            
             solaTime.clear();
             solaTime.resize(size);
 
@@ -457,7 +463,6 @@ int main(int, char**)
             dSolaTime.resize(sampleLimit);
             //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
             {
-
                 int skip = 1;
                 for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
                     skip++;

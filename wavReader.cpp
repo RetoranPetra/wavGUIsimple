@@ -100,7 +100,7 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
         cout << fileName + ".wav has been opened successfully\n";
         //buffer creation and filling
         outBuffer = new char[fileLengthBytes];
-        //memcpy(outBuffer, buffer, fileLengthBytes);
+        memcpy(outBuffer, buffer, fileLengthBytes);
         /*
         for (int i = 0; i < vectorIn.size(); i++) {
             //outBuffer[44 + i] = vectorIn[i];
@@ -116,7 +116,7 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
             *reinterpret_cast<int16_t*>(&outBuffer[44 + i*2]) = 0;
         }
         */
-        //memcpy(&outBuffer[44], &vectorIn[0],(size_t)vectorIn.size()*2);
+        memcpy(&outBuffer[44], &vectorIn[0],(size_t)vectorIn.size()*2);
 
         for (int i = 3000; i < 3100; i++) {
             cout << *reinterpret_cast<int16_t*>(&outBuffer[44+i*2]) << " " << *reinterpret_cast<int16_t*>(&buffer[44+i * 2]) << " " << vectorIn[i] << "\n";
