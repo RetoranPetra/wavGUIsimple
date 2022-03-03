@@ -121,7 +121,7 @@ int main(int, char**)
 
 
     int scale = 1;
-    float solaTimeScale = 2.0;
+    float solaTimeScale = 0.5;
     float oldSolaTimeScale = 0.0;
 
     //Max number of samples allowed in plots
@@ -282,11 +282,6 @@ int main(int, char**)
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
-                /*
-                if (solaTimeScale < 1) {
-                    solaTimeScale = 1.0f;
-                }
-                */
             }
             if (ImGui::Button("Plot SOLA 20ms")) {
                 flagRecalculateSola = true;
@@ -423,12 +418,12 @@ int main(int, char**)
             int size = (int)(wavData.size() / solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
-            rawSolaBuffer.resize(size);
             rawSolaBuffer.clear();
+            rawSolaBuffer.resize(size);
             
             //Sola with default values
-            SOLA newCalc(solaTimeScale, //Time scale to acheive, 2 = double speed, 1/2 = half speed
-                wav.getSampleNum_ms(300),//Processing sequence size
+            SOLA newCalc(solaTimeScale, //Time scale to acheive, 1/2 = half speed. must be less than one or just truncates for some reason. Needs to be fixed.
+                wav.getSampleNum_ms(100),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
                 wavData,//Data to read from
