@@ -102,25 +102,8 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
         outBuffer = new char[fileLengthBytes];
         //std::copy(buffer, &buffer[fileLengthBytes], fileLengthBytes);
         memcpy(outBuffer, buffer, fileLengthBytes);
-
-        /*
-        for (int i = 0; i < vectorIn.size(); i++) {
-            //outBuffer[44 + i] = vectorIn[i];
-            outBuffer[44 + i] = 0;
-        }
-        */
-        //for (int i = 0; i < vectorIn.size(); i++) {
-        //    cout << vectorIn[i]<<"\n";
-        //}
-        /*
-        for (int i = 0; i < vectorIn.size(); i++) {
-            //outBuffer[44 + i] = vectorIn[i];
-            *reinterpret_cast<int16_t*>(&outBuffer[44 + i*2]) = 0;
-        }
-        */
-        //memcpy(&outBuffer[44], reinterpret_cast<int16_t*>(&vectorIn[0]),(size_t)vectorIn.size()*2);
-        //std::copy(&vectorIn[0], &vectorIn[fileLengthBytes / 2], &outBuffer[44]);
-        cout << "Vectorin Size: " << vectorIn.size() << "\n";
+        //cout << "Vectorin Size: " << vectorIn.size() << "\n";
+        //copys over values from vectorin, needs to seperate into 8 byte chunks.
         for (int i = 0; i < fileLengthBytes/2-44; i++) {
             int16_t copy;
             int8_t top;
@@ -132,11 +115,12 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
             outBuffer[44 + i * 2] = *reinterpret_cast<char*>(&bottom);
             outBuffer[45 + i * 2] = *reinterpret_cast<char*>(&top);
         }
-
+        //Debug code for 
+        /*
         for (int i = 3000; i < 3100; i++) {
             cout << *reinterpret_cast<int16_t*>(&outBuffer[44+i*2]) << " " << *reinterpret_cast<int16_t*>(&buffer[44+i * 2]) << " " << vectorIn[i] << "\n";
         }
-
+        */
         cout << "Writing " << fileLengthBytes << " bytes...\n";
         fout.write(outBuffer, fileLengthBytes);
         fout.close();
@@ -270,5 +254,21 @@ namespace vectorStuff {
         for (int i = 0; i < length; i++) {
             fstart[i] = (float)start[i] / pow(2, 15);
         }
+    }
+
+    std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim) {
+        std::vector<std::int16_t> vectorOut;
+        vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
+        vectorOut.resize(sizeAim);
+        float ratio = (float)vectorIn.size() / (float)sizeAim;
+        cout << "Ratio: " << ratio << "\n";
+        double sum = 0.0;
+        for (int i = 0; i < sizeAim; i++) {
+            sum += ratio;
+            //cout << "sum: " << sum << "\n";
+            int temp = (int)sum;
+            vectorOut[i] = (int)((double)(vectorIn[temp+1]-vectorIn[temp])*(sum-(double)temp))+vectorIn[temp];
+        }
+        cout << "Finished loop without crash\n";
     }
 }

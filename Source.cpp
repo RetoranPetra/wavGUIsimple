@@ -289,7 +289,25 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Write to temp.wav")) {
-                wav.writeBuffer(rawSolaBuffer);
+                //wav.writeBuffer(rawSolaBuffer);
+                std::vector<std::int16_t> vectorOut;
+                //vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
+
+                //Copied from vectorStuffresample, didn't work when using it from there for some reason.
+                //Works perfectly
+                vectorOut.resize(wavData.size());
+                float ratio = (float)rawSolaBuffer.size() / (float)wavData.size();
+                cout << "Ratio: " << ratio << "\n";
+                double sum = 0.0;
+                for (int i = 0; i < wavData.size(); i++) {
+                    sum += ratio;
+                    //cout << "sum: " << sum << "\n";
+                    int temp = (int)sum;
+                    vectorOut[i] = (int)((double)(rawSolaBuffer[temp + 1] - rawSolaBuffer[temp]) * (sum - (double)temp)) + rawSolaBuffer[temp];
+                }
+
+                //Writes to disk
+                wav.writeBuffer(vectorOut);
             }
 
             ImGui::End();
