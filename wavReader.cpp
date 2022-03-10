@@ -257,9 +257,8 @@ namespace vectorStuff {
     }
 
     std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim) {
-        std::vector<std::int16_t> vectorOut;
+        std::vector<std::int16_t> vectorOut(sizeAim);
         vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
-        vectorOut.resize(sizeAim);
         float ratio = (float)vectorIn.size() / (float)sizeAim;
         cout << "Ratio: " << ratio << "\n";
         double sum = 0.0;
@@ -270,5 +269,6 @@ namespace vectorStuff {
             vectorOut[i] = (int)((double)(vectorIn[temp+1]-vectorIn[temp])*(sum-(double)temp))+vectorIn[temp];
         }
         cout << "Finished loop without crash\n";
+        return vectorOut;
     }
 }

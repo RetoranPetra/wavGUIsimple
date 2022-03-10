@@ -290,11 +290,17 @@ int main(int, char**)
 
             if (ImGui::Button("Write to temp.wav")) {
                 //wav.writeBuffer(rawSolaBuffer);
-                std::vector<std::int16_t> vectorOut;
+
+                //Not working when a function, find out why.
+                cout << "Raw sola buffer size: " << rawSolaBuffer.size() << "\n";
+                std::vector<std::int16_t> vectorOut = vectorStuff::resampleToSize(rawSolaBuffer, (int)wavData.size());
                 //vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
 
                 //Copied from vectorStuffresample, didn't work when using it from there for some reason.
-                //Works perfectly
+                //Works perfectly, but only for single-channel.
+
+      
+                /*
                 vectorOut.resize(wavData.size());
                 float ratio = (float)rawSolaBuffer.size() / (float)wavData.size();
                 cout << "Ratio: " << ratio << "\n";
@@ -305,7 +311,8 @@ int main(int, char**)
                     int temp = (int)sum;
                     vectorOut[i] = (int)((double)(rawSolaBuffer[temp + 1] - rawSolaBuffer[temp]) * (sum - (double)temp)) + rawSolaBuffer[temp];
                 }
-
+                */
+                cout << "vectorOut Size" << vectorOut.size() << "\n";
                 //Writes to disk
                 wav.writeBuffer(vectorOut);
             }
