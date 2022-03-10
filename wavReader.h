@@ -54,4 +54,5 @@ namespace vectorStuff {
     std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize);
     void floatData(int16_t* start,float* fstart, int length);
     std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim);
+    std::vector<float> resampleFloat(std::vector<float> vectorIn, int sizeAim);
 };

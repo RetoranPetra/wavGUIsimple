@@ -146,7 +146,6 @@ int main(int, char**)
     //Stores values used in display of sola data
     vector<float> dSolaBuffer;
     vector<float> dSolaTime;
-    int dSolaLength = 0;//unused atm
 
 
     //Buffers for fourier values for original 20ms
@@ -230,24 +229,9 @@ int main(int, char**)
             ImGui::SetNextItemWidth(20.0f);
             if (ImGui::InputText("Drive", driveSelector, 2)) { //for some reason needs to be 2 long to store one character, might be end of string signifier
             }
-            /*
-            if (ImGui::Button("Plot in GNUPLOT") && wav.is_open()) {
-                gnu.changeFile(wav.getFileName());
-                gnu.genDatFromWavAuto(wav);
-                //gnu.genImgOutPlt(1024, 512);
-                gnu.genDefaultPlt();
-                gnu.openPltWin();
-            }
-            
-            ImGui::SameLine();
-            ss.str(std::string()); ss << "Previous Gnuplot accuracy: 1/" << gnu.getLastAutoScale();
-            ImGui::Text(ss.str().c_str());
-            if (ImGui::Button("Clean up GNUPLOT files")) {
-                gnu.cleanup();
-            }
-            */
+
             if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
-                vector<int16_t> shrunken = vectorStuff::shrinkData(wavData, sampleLimit);
+                vector<int16_t> shrunken = vectorStuff::resampleToSize(wavData, sampleLimit);
                 valLength = shrunken.size();
                 yVals.clear(); xVals.clear();
                 yVals.resize(valLength);
@@ -290,28 +274,9 @@ int main(int, char**)
 
             if (ImGui::Button("Write to temp.wav")) {
                 //wav.writeBuffer(rawSolaBuffer);
-
-                //Not working when a function, find out why.
                 cout << "Raw sola buffer size: " << rawSolaBuffer.size() << "\n";
                 std::vector<std::int16_t> vectorOut = vectorStuff::resampleToSize(rawSolaBuffer, (int)wavData.size());
-                //vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
-
-                //Copied from vectorStuffresample, didn't work when using it from there for some reason.
                 //Works perfectly, but only for single-channel.
-
-      
-                /*
-                vectorOut.resize(wavData.size());
-                float ratio = (float)rawSolaBuffer.size() / (float)wavData.size();
-                cout << "Ratio: " << ratio << "\n";
-                double sum = 0.0;
-                for (int i = 0; i < wavData.size(); i++) {
-                    sum += ratio;
-                    //cout << "sum: " << sum << "\n";
-                    int temp = (int)sum;
-                    vectorOut[i] = (int)((double)(rawSolaBuffer[temp + 1] - rawSolaBuffer[temp]) * (sum - (double)temp)) + rawSolaBuffer[temp];
-                }
-                */
                 cout << "vectorOut Size" << vectorOut.size() << "\n";
                 //Writes to disk
                 wav.writeBuffer(vectorOut);
@@ -390,7 +355,7 @@ int main(int, char**)
             ImGui::Begin("SOLA");
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
                 //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), &dSolaTime[0], &dSolaBuffer[0], dSolaLength);
+                ImPlot::PlotStairs(wav.getFileName().c_str(), &dSolaTime[0], &dSolaBuffer[0], dSolaBuffer.size());
                 ImPlot::EndPlot();
             }
             std::stringstream ss;
@@ -447,7 +412,7 @@ int main(int, char**)
             rawSolaBuffer.resize(size);
             
             //Sola with default values
-            SOLA newCalc(solaTimeScale, //Time scale to acheive, 1/2 = half speed. must be less than one or just truncates for some reason. Needs to be fixed.
+            SOLA newCalc(solaTimeScale,
                 wav.getSampleNum_ms(100),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
@@ -479,9 +444,12 @@ int main(int, char**)
             int rightSize = size;
             dSolaBuffer.clear();
             dSolaTime.clear();
-            dSolaBuffer.resize(sampleLimit);
-            dSolaTime.resize(sampleLimit);
-            //makes new scope to run algorithm in, very similar to vectorStuff::shrinkData
+
+            //Resizes to display
+            dSolaTime = vectorStuff::resampleFloat(solaTime, sampleLimit);
+            dSolaBuffer = vectorStuff::resampleFloat(solaBuffer, sampleLimit);
+
+            /*
             {
                 int skip = 1;
                 for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
@@ -497,8 +465,9 @@ int main(int, char**)
                     }
                 }
             }
+            */
 
-            //Memory Cleanup
+            //Flag Reseting
             flagRecalculateSola = false;
             flagSola = true;
             oldSolaTimeScale = solaTimeScale;

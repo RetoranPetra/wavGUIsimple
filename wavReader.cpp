@@ -271,4 +271,20 @@ namespace vectorStuff {
         cout << "Finished loop without crash\n";
         return vectorOut;
     }
+
+    std::vector<float> resampleFloat(std::vector<float> vectorIn, int sizeAim) {
+        std::vector<float> vectorOut(sizeAim);
+        vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
+        float ratio = (float)vectorIn.size() / (float)sizeAim;
+        cout << "Ratio: " << ratio << "\n";
+        double sum = 0.0;
+        for (int i = 0; i < sizeAim; i++) {
+            sum += ratio;
+            //cout << "sum: " << sum << "\n";
+            int temp = (int)sum;
+            vectorOut[i] = (float)((double)(vectorIn[temp + 1] - vectorIn[temp]) * (sum - (double)temp)) + vectorIn[temp];
+        }
+        cout << "Finished loop without crash\n";
+        return vectorOut;
+    }
 }
