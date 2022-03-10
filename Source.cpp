@@ -143,6 +143,15 @@ int main(int, char**)
     vector<int16_t> rawSolaBuffer;
     vector<float> solaTime;
 
+
+    //Databuffer system saved
+    vector<float> dataDisplay;
+    vector<float> dataTimeDisplay;
+    vector<int16_t> dataBuffer;
+    bool dataUpdated = false;
+    bool showBuffer = false;
+
+
     //Stores values used in display of sola data
     vector<float> dSolaBuffer;
     vector<float> dSolaTime;
@@ -244,6 +253,11 @@ int main(int, char**)
                 }
                 plotWindow = true;
             }
+            ImGui::SameLine();
+            if (ImGui::Button("Import to Buffer") && wav.is_open()) {
+                dataBuffer = wavData;
+                dataUpdated = true;
+            }
             
             if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
                 sampleOffset20ms = 0;
@@ -331,6 +345,18 @@ int main(int, char**)
                 }
             }
 
+            ImGui::End();
+        }
+
+        if (showBuffer) {
+            ImGui::Begin("Buffer Window");
+            if (ImPlot::BeginPlot("Plot of buffer", "Time (s)", "Amplitude")) {
+                ImPlot::PlotStairs(wav.getFileName().c_str(), &dataTimeDisplay[0], &dataDisplay[0], dataDisplay.size());
+                ImPlot::EndPlot();
+            }
+            std::stringstream ss;
+            ss << "Samples: " << dataBuffer.size();
+            ImGui::Text(ss.str().c_str());
             ImGui::End();
         }
         
@@ -508,6 +534,19 @@ int main(int, char**)
             offsetUpdatedFreq = true;
             offsetUpdatedFreqSola = true;
             plotFreq = true;
+        }
+
+        //Updating display values of the buffer
+        if (dataUpdated) {
+            vector<int16_t> temp = vectorStuff::resampleToSize(dataBuffer, sampleLimit);
+            dataDisplay.resize(temp.size());
+            vectorStuff::floatData(&temp[0], &dataDisplay[0], temp.size());
+            dataTimeDisplay.resize(temp.size());
+            for (int i = 0; i < temp.size(); i++) {
+                dataTimeDisplay[i] = (float)i / wav.getSampleRate();//should probably store the sample rate of the buffer currently.
+            }
+            dataUpdated = false;
+            showBuffer = true;
         }
         
         // Rendering, must take place at the end of every loop
