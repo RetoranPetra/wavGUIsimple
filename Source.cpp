@@ -112,7 +112,6 @@ int main(int, char**)
     //gnuPlotter gnu;
 
     bool wavWindow = false;
-    bool plotWindow = false;
     bool plotWindow20ms = false;
 
     bool plotWindowSOLA = false;
@@ -132,11 +131,6 @@ int main(int, char**)
     //Stores wavdata in float format for reading by 20ms window
     vector<float> wavTime;
     vector<float> trueValsFloat;
-
-    //Stores values to be displayed by entire plot
-    vector<float> yVals;//Stores wavfile info
-    vector<float> xVals;
-    size_t valLength = 0;
 
     //Stores values directly gotten from applying sola to the data
     vector<float> solaBuffer;
@@ -238,28 +232,13 @@ int main(int, char**)
             ImGui::SetNextItemWidth(20.0f);
             if (ImGui::InputText("Drive", driveSelector, 2)) { //for some reason needs to be 2 long to store one character, might be end of string signifier
             }
-
-            if (ImGui::Button("Plot in IMPLOT") && wav.is_open()) {
-                vector<int16_t> shrunken = vectorStuff::resampleToSize(wavData, sampleLimit);
-                valLength = shrunken.size();
-                yVals.clear(); xVals.clear();
-                yVals.resize(valLength);
-                xVals.resize(valLength);
-
-                vectorStuff::floatData(&shrunken[0], &yVals[0], valLength);
-                float ratio = (float)wavData.size() / (float)valLength;
-                for (int i = 0; i < valLength; i++) {
-                    xVals[i] = (float)(i+1) * ratio / (float)sampleRate;
-                }
-                plotWindow = true;
-            }
             ImGui::SameLine();
             if (ImGui::Button("Import to Buffer") && wav.is_open()) {
                 dataBuffer = wavData;
                 dataUpdated = true;
             }
             
-            if (ImGui::Button("Plot in IMPLOT 20ms") && wav.is_open()) {
+            if (ImGui::Button("Plot wav in 20ms") && wav.is_open()) {
                 sampleOffset20ms = 0;
                 plotWindow20ms = true;
             }
@@ -273,17 +252,12 @@ int main(int, char**)
                 updateFourier = true;
             }
             
-            if (ImGui::Button("Plot SOLA in implot")) {
+            if (ImGui::Button("Apply Sola to Buffer")) {
                 flagRecalculateSola = true;
-                plotWindowSOLA = true;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
-            }
-            if (ImGui::Button("Plot SOLA 20ms")) {
-                flagRecalculateSola = true;
-                flag20msSola = true;
             }
 
             if (ImGui::Button("Write to temp.wav")) {
@@ -298,18 +272,6 @@ int main(int, char**)
 
             ImGui::End();
         }
-
-        if (plotWindow) {
-            ImGui::Begin("Plotting Window");
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()).c_str(), "Time (s)", "Amplitude")) {
-                ImPlot::PlotStairs(wav.getFileName().c_str(), &xVals[0], &yVals[0], valLength);
-                ImPlot::EndPlot();
-            }
-            std::stringstream ss;
-            ss << "Samples: " << trueValsFloat.size();
-            ImGui::Text(ss.str().c_str());
-            ImGui::End();
-        }
         
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
@@ -317,19 +279,6 @@ int main(int, char**)
             if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
                 ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &trueValsFloat[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
                 ImPlot::EndPlot();
-            }
-
-            if (flagSola&&flag20msSola) {
-                if (offsetUpdatedSola) { ImPlot::FitNextPlotAxes(); offsetUpdatedSola = false; }//recentres plot
-                if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " SOLA over 20ms").c_str(), "Time (s)", "Amplitude")) {
-                    /*
-                    //Grabs small segment of window
-                    int thisOffset = (int)((float)(sampleNum20ms * sampleOffset20ms) / oldSolaTimeScale);
-                    */
-                    //Grabs small segment of window
-                    ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &solaBuffer[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
-                    ImPlot::EndPlot();
-                }
             }
 
             if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
@@ -377,19 +326,6 @@ int main(int, char**)
             ImGui::End();
         }
         
-        if (plotWindowSOLA&&flagSola) {
-            ImGui::Begin("SOLA");
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName()+" SOLA'd").c_str(), "Time (s)", "Amplitude")) {
-                //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                ImPlot::PlotStairs(wav.getFileName().c_str(), &dSolaTime[0], &dSolaBuffer[0], dSolaBuffer.size());
-                ImPlot::EndPlot();
-            }
-            std::stringstream ss;
-            ss << "Samples: " << solaBuffer.size();
-            ImGui::Text(ss.str().c_str());
-            ImGui::End();
-        }
-        
         //===========
         //Loop Checks
         //===========
@@ -405,7 +341,6 @@ int main(int, char**)
         //Checks if file selection buffer has anything in it, if it does, opens up the wav.
         if (!(*fileSelectionBuffer == NULL)) {
             //Destroys plot windows to prevent problems
-            plotWindow = false;
             plotWindow20ms = false;
             plotFreq = false;
 
@@ -431,18 +366,18 @@ int main(int, char**)
         }
 
         if (flagRecalculateSola) {
-            int size = (int)(wavData.size() / solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
+            int size = (int)(dataBuffer.size() * solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
             rawSolaBuffer.clear();
             rawSolaBuffer.resize(size);
             
             //Sola with default values
-            SOLA newCalc(solaTimeScale,
+            SOLA newCalc(1.0/solaTimeScale,
                 wav.getSampleNum_ms(100),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
-                wavData,//Data to read from
+                dataBuffer,//Data to read from
                 rawSolaBuffer//Data to send to
                 );//Length of data in
             newCalc.sola();
@@ -451,29 +386,7 @@ int main(int, char**)
                 cout << wavData[i] << " " << rawSolaBuffer[i] << "\n";
             }
 
-            
-            solaTime.clear();
-            solaTime.resize(size);
-
-
-            //Reconstructs time portion
-            for (int i = 0; i < size; i++) {
-                solaTime[i] = (float)i / wav.getSampleRate();
-            }
-
-            //Converts to float for display in 20ms
-            solaBuffer.clear();
-            solaBuffer.resize(size);
-            vectorStuff::floatData(&rawSolaBuffer[0], &solaBuffer[0], size);
-
-            //Converts to float to display for entire section
-            int rightSize = size;
-            dSolaBuffer.clear();
-            dSolaTime.clear();
-
-            //Resizes to display
-            dSolaTime = vectorStuff::resampleFloat(solaTime, sampleLimit);
-            dSolaBuffer = vectorStuff::resampleFloat(solaBuffer, sampleLimit);
+            dataBuffer = rawSolaBuffer;
 
             /*
             {
@@ -494,6 +407,7 @@ int main(int, char**)
             */
 
             //Flag Reseting
+            dataUpdated = true;
             flagRecalculateSola = false;
             flagSola = true;
             oldSolaTimeScale = solaTimeScale;
@@ -543,7 +457,7 @@ int main(int, char**)
             vectorStuff::floatData(&temp[0], &dataDisplay[0], temp.size());
             dataTimeDisplay.resize(temp.size());
             for (int i = 0; i < temp.size(); i++) {
-                dataTimeDisplay[i] = (float)i / wav.getSampleRate();//should probably store the sample rate of the buffer currently.
+                dataTimeDisplay[i] = (float)i / wav.getSampleRate() * (float)dataBuffer.size()/(float)dataDisplay.size();//should probably store the sample rate of the buffer currently.
             }
             dataUpdated = false;
             showBuffer = true;
