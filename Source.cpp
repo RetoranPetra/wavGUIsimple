@@ -167,6 +167,9 @@ int main(int, char**)
         vector<int16_t> dataBuffer;
         bool dataUpdated = false;
         bool showBuffer = false;
+        bool millisecMode = false;
+        int millisecCurrent = 0;
+        bool millisecUpdated = false;
     };
     
     vector<dataWindow> windows;
@@ -388,12 +391,41 @@ int main(int, char**)
                     ss << "Buffer Window " << i;
                     ImGui::Begin(ss.str().c_str());
                     ss.str(std::string());
-                    ss << "Plot of buffer " << i;
-                    if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
-                        ss.str(std::string());
-                        ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
-                        ImPlot::EndPlot();
+
+                    if (ImGui::Button("Toggle 20ms mode")) {
+                        windows[i].millisecMode = !windows[i].millisecMode;
                     }
+
+                    ss << "Plot of buffer " << i;
+                    if (!windows[i].millisecMode) {
+                        if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
+                            ss.str(std::string());
+                            ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
+                            ImPlot::EndPlot();
+                        }
+                    }
+                    else {
+                        if (windows[i].millisecUpdated) { ImPlot::FitNextPlotAxes(); windows[i].millisecUpdated = false; }//recentres plot
+                        int samples = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
+                        if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
+                            ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].dataBuffer[samples * windows[i].millisecCurrent], samples); //need timescale
+                            ImPlot::EndPlot();
+                        }
+                    }
+                    if (windows[i].millisecMode) {
+                        if (ImGui::InputInt("20ms sampleNumber", &windows[i].millisecCurrent, 1, 100)) {
+                            windows[i].millisecUpdated = true;
+                            int max = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
+                            if (windows[i].millisecCurrent > max - 1) {
+                                windows[i].millisecCurrent = max - 1;
+                            }
+                            else if (windows[i].millisecCurrent < 0) {
+                                windows[i].millisecCurrent = 0;
+                            }
+                        }
+                    }
+
+
                     std::stringstream ss;
                     ss << "Samples: " << windows[i].dataBuffer.size();
                     ImGui::Text(ss.str().c_str());
