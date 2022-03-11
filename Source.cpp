@@ -315,7 +315,9 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Play out.wav")) {
-                playOut();
+                //Removes from main thread to prevent freezing
+                std::thread audio(playOut);
+                audio.detach();
             }
             ImGui::End();
         }
