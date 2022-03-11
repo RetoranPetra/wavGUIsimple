@@ -40,6 +40,7 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
     return std::string(charPointer, charPointer + length);
 }
 
+
 int main(int, char**)
 {
     //Set namespace stuff
@@ -124,6 +125,7 @@ int main(int, char**)
     float oldSolaTimeScale = 0.0;
 
     float resampleTimeScale = 2.0;
+    float frequencyScale = 1.1;
 
     //Max number of samples allowed in plots
     int sampleLimit = 1e4;
@@ -263,6 +265,9 @@ int main(int, char**)
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale (Sola)", &solaTimeScale, 0.05f, 0.2f)) {
+                if (solaTimeScale <= 0.0f) {
+                    solaTimeScale = 0.05f;
+                }
             }
 
             if (ImGui::Button("Apply Resampling")) {
@@ -272,10 +277,25 @@ int main(int, char**)
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputFloat("TimeScale (Resample)", &resampleTimeScale, 0.05f, 0.2f)) {
-
+                if (resampleTimeScale <= 0.0f) {
+                    resampleTimeScale = 0.05f;
+                }
             }
 
-            if (ImGui::Button("Write to temp.wav")) {
+            if (ImGui::Button("Frequency Shift by factor")) {
+                flagFreqShift = true;
+            }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(100.0f);
+            if (ImGui::InputFloat("Frequency Scale", &frequencyScale, 0.05f, 0.2f)) {
+                if (frequencyScale <= 0.0f) {
+                    frequencyScale = 0.05f;
+                }
+            }
+
+
+
+            if (ImGui::Button("Write to out.wav")) {
                 //Writes to disk
                 wav.writeBuffer(dataBuffer);
             }
@@ -400,7 +420,54 @@ int main(int, char**)
         }
 
         if (flagFreqShift) {
+            if (frequencyScale > 1.0) {
+                //Sola
 
+                int size = (int)(dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
+
+                //Expands solaBuffer
+                rawSolaBuffer.clear();
+                rawSolaBuffer.resize(size);
+
+                //Sola with default values
+                SOLA newCalc(1.0 / frequencyScale,
+                    wav.getSampleNum_ms(100),//Processing sequence size
+                    wav.getSampleNum_ms(20),//Overlap size
+                    wav.getSampleNum_ms(15),//Seek for best overlap size
+                    dataBuffer,//Data to read from
+                    rawSolaBuffer//Data to send to
+                );//Length of data in
+                newCalc.sola();
+                dataBuffer = rawSolaBuffer;
+
+                //Resample
+                dataBuffer = vectorStuff::resampleToSize(dataBuffer, dataBuffer.size() / frequencyScale);
+            }
+            else if (frequencyScale < 1.0) {
+                //Resample
+                dataBuffer = vectorStuff::resampleToSize(dataBuffer, dataBuffer.size() / frequencyScale);
+
+                //Sola
+
+                int size = (int)(dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
+
+                //Expands solaBuffer
+                rawSolaBuffer.clear();
+                rawSolaBuffer.resize(size);
+
+                //Sola with default values
+                SOLA newCalc(1.0 / frequencyScale,
+                    wav.getSampleNum_ms(100),//Processing sequence size
+                    wav.getSampleNum_ms(20),//Overlap size
+                    wav.getSampleNum_ms(15),//Seek for best overlap size
+                    dataBuffer,//Data to read from
+                    rawSolaBuffer//Data to send to
+                );//Length of data in
+                newCalc.sola();
+                dataBuffer = rawSolaBuffer;
+            }
+            dataUpdated = true;
+            flagFreqShift = false;
         }
 
 
