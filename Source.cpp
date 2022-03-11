@@ -135,6 +135,8 @@ int main(int, char**)
 
     bool plotFreq = false;
 
+    bool dataWindowTable = false;
+
 
     int scale = 1;
     float solaTimeScale = 0.5;
@@ -168,6 +170,8 @@ int main(int, char**)
     };
     
     vector<dataWindow> windows;
+
+    int currentBuffer = 0;
 
 
     //Stores values used in display of sola data
@@ -226,7 +230,7 @@ int main(int, char**)
         if (showDemo) {
             ImGui::ShowDemoWindow(&showDemo);//show demo is the bool that decides when this closes
         }
-        
+
         {
             ImGui::Begin("Base Window");
             ImGui::Checkbox("Show Demo Window", &showDemo);
@@ -243,12 +247,38 @@ int main(int, char**)
             ImPlot::ShowDemoWindow(&showPlotDemo);
         }
 
+        if (dataWindowTable) {
+            std::stringstream ss;
+            ImGui::Begin("Buffer Selection", &dataWindowTable);
+            if (ImGui::Button("Add buffer")) {
+                windows.push_back(dataWindow());
+            }
+            ss << "Total Number of Buffers: " << windows.size();
+            ImGui::Text(ss.str().c_str());
+            ss.str(std::string());
+
+            ss << "Current Selected Buffer: " << currentBuffer;
+            ImGui::Text(ss.str().c_str());
+            ss.str(std::string());
+
+            for (int i = 0; i < windows.size(); i++) {
+                ss << "Buffer " << i;
+                if (ImGui::Button(ss.str().c_str())) {
+                    currentBuffer = i;
+                }
+                ss.str(std::string());
+            }
+            ImGui::End();
+        }
+
         if (wavWindow) {
+            dataWindowTable = true;
+
             ImGui::Begin("WavReader", &wavWindow);
             std::stringstream ss;
             ss << "Current WAV: " << wav.getFileName();
             ImGui::Text(ss.str().c_str());
-            ss.str(std::string()); ss <<"Channels: " << wav.getChannels();
+            ss.str(std::string()); ss << "Channels: " << wav.getChannels();
             ImGui::Text(ss.str().c_str());
             ss.str(std::string()); ss << "Sample Rate: " << wav.getSampleRate();
             ImGui::Text(ss.str().c_str());
@@ -263,15 +293,15 @@ int main(int, char**)
             }
             ImGui::SameLine();
             if (ImGui::Button("Import to Buffer") && wav.is_open()) {
-                windows[0].dataBuffer = wavData;
-                windows[0].dataUpdated = true;
+                windows[currentBuffer].dataBuffer = wavData;
+                windows[currentBuffer].dataUpdated = true;
             }
-            
+
             if (ImGui::Button("Plot wav in 20ms") && wav.is_open()) {
                 sampleOffset20ms = 0;
                 plotWindow20ms = true;
             }
-            
+
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
@@ -280,7 +310,7 @@ int main(int, char**)
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
                 updateFourier = true;
             }
-            
+
             if (ImGui::Button("Apply Sola to Buffer")) {
                 flagRecalculateSola = true;
             }
@@ -293,8 +323,8 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Apply Resampling")) {
-                windows[0].dataBuffer = vectorStuff::resampleToSize(windows[0].dataBuffer, windows[0].dataBuffer.size() * resampleTimeScale);
-                windows[0].dataUpdated = true;
+                windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() * resampleTimeScale);
+                windows[currentBuffer].dataUpdated = true;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -317,7 +347,7 @@ int main(int, char**)
 
             if (ImGui::Button("Write to out.wav")) {
                 //Writes to disk
-                wav.writeBuffer(windows[0].dataBuffer);
+                wav.writeBuffer(windows[currentBuffer].dataBuffer);
             }
 
             if (ImGui::Button("Play out.wav")) {
@@ -327,7 +357,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        
+
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
@@ -351,18 +381,27 @@ int main(int, char**)
 
             ImGui::End();
         }
-
-        if (windows[0].showBuffer) {
-            ImGui::Begin("Buffer Window");
-            if (ImPlot::BeginPlot("Plot of buffer", "Time (s)", "Amplitude")) {
-                ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[0].dataTimeDisplay[0], &windows[0].dataDisplay[0], windows[0].dataDisplay.size());
-                ImPlot::EndPlot();
-            }
+        {
             std::stringstream ss;
-            ss << "Samples: " << windows[0].dataBuffer.size();
-            ImGui::Text(ss.str().c_str());
-            ImGui::End();
+            for (int i = 0; i < windows.size(); i++) {
+                if (windows[i].showBuffer) {
+                    ss << "Buffer Window " << i;
+                    ImGui::Begin(ss.str().c_str());
+                    ss.str(std::string());
+                    ss << "Plot of buffer " << i;
+                    if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
+                        ss.str(std::string());
+                        ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
+                        ImPlot::EndPlot();
+                    }
+                    std::stringstream ss;
+                    ss << "Samples: " << windows[i].dataBuffer.size();
+                    ImGui::Text(ss.str().c_str());
+                    ImGui::End();
+                }
+            }
         }
+        
         
         if (plotFreq) {
             ImGui::Begin("Plotting Window Freq");
@@ -421,7 +460,7 @@ int main(int, char**)
         }
 
         if (flagRecalculateSola) {
-            int size = (int)(windows[0].dataBuffer.size() * solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
+            int size = (int)(windows[currentBuffer].dataBuffer.size() * solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
 
             //Expands solaBuffer
             rawSolaBuffer.clear();
@@ -432,13 +471,13 @@ int main(int, char**)
                 wav.getSampleNum_ms(100),//Processing sequence size
                 wav.getSampleNum_ms(20),//Overlap size
                 wav.getSampleNum_ms(15),//Seek for best overlap size
-                windows[0].dataBuffer,//Data to read from
+                windows[currentBuffer].dataBuffer,//Data to read from
                 rawSolaBuffer//Data to send to
                 );//Length of data in
             newCalc.sola();
-            windows[0].dataBuffer = rawSolaBuffer;
+            windows[currentBuffer].dataBuffer = rawSolaBuffer;
             //Flag Reseting
-            windows[0].dataUpdated = true;
+            windows[currentBuffer].dataUpdated = true;
             flagRecalculateSola = false;
             flagSola = true;
             oldSolaTimeScale = solaTimeScale;
@@ -448,7 +487,7 @@ int main(int, char**)
             if (frequencyScale > 1.0) {
                 //Sola
 
-                int size = (int)(windows[0].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
+                int size = (int)(windows[currentBuffer].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
 
                 //Expands solaBuffer
                 rawSolaBuffer.clear();
@@ -459,22 +498,22 @@ int main(int, char**)
                     wav.getSampleNum_ms(100),//Processing sequence size
                     wav.getSampleNum_ms(20),//Overlap size
                     wav.getSampleNum_ms(15),//Seek for best overlap size
-                    windows[0].dataBuffer,//Data to read from
+                    windows[currentBuffer].dataBuffer,//Data to read from
                     rawSolaBuffer//Data to send to
                 );//Length of data in
                 newCalc.sola();
-                windows[0].dataBuffer = rawSolaBuffer;
+                windows[currentBuffer].dataBuffer = rawSolaBuffer;
 
                 //Resample
-                windows[0].dataBuffer = vectorStuff::resampleToSize(windows[0].dataBuffer, windows[0].dataBuffer.size() / frequencyScale);
+                windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
             }
             else if (frequencyScale < 1.0) {
                 //Resample
-                windows[0].dataBuffer = vectorStuff::resampleToSize(windows[0].dataBuffer, windows[0].dataBuffer.size() / frequencyScale);
+                windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
 
                 //Sola
 
-                int size = (int)(windows[0].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
+                int size = (int)(windows[currentBuffer].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
 
                 //Expands solaBuffer
                 rawSolaBuffer.clear();
@@ -485,13 +524,13 @@ int main(int, char**)
                     wav.getSampleNum_ms(100),//Processing sequence size
                     wav.getSampleNum_ms(20),//Overlap size
                     wav.getSampleNum_ms(15),//Seek for best overlap size
-                    windows[0].dataBuffer,//Data to read from
+                    windows[currentBuffer].dataBuffer,//Data to read from
                     rawSolaBuffer//Data to send to
                 );//Length of data in
                 newCalc.sola();
-                windows[0].dataBuffer = rawSolaBuffer;
+                windows[currentBuffer].dataBuffer = rawSolaBuffer;
             }
-            windows[0].dataUpdated = true;
+            windows[currentBuffer].dataUpdated = true;
             flagFreqShift = false;
         }
 
@@ -533,16 +572,19 @@ int main(int, char**)
         }
 
         //Updating display values of the buffer
-        if (windows[0].dataUpdated) {
-            vector<int16_t> temp = vectorStuff::resampleToSize(windows[0].dataBuffer, sampleLimit);
-            windows[0].dataDisplay.resize(temp.size());
-            vectorStuff::floatData(&temp[0], &windows[0].dataDisplay[0], temp.size());
-            windows[0].dataTimeDisplay.resize(temp.size());
-            for (int i = 0; i < temp.size(); i++) {
-                windows[0].dataTimeDisplay[i] = (float)i / wav.getSampleRate() * (float)windows[0].dataBuffer.size()/(float)windows[0].dataDisplay.size();//should probably store the sample rate of the buffer currently.
+
+        for (int j = 0; j < windows.size(); j++) {
+            if (windows[j].dataUpdated) {
+                vector<int16_t> temp = vectorStuff::resampleToSize(windows[j].dataBuffer, sampleLimit);
+                windows[j].dataDisplay.resize(temp.size());
+                vectorStuff::floatData(&temp[0], &windows[j].dataDisplay[0], temp.size());
+                windows[j].dataTimeDisplay.resize(temp.size());
+                for (int i = 0; i < temp.size(); i++) {
+                    windows[j].dataTimeDisplay[i] = (float)i / wav.getSampleRate() * (float)windows[j].dataBuffer.size()/(float)windows[j].dataDisplay.size();//should probably store the sample rate of the buffer currently.
+                }
+                windows[j].dataUpdated = false;
+                windows[j].showBuffer = true;
             }
-            windows[0].dataUpdated = false;
-            windows[0].showBuffer = true;
         }
         
         // Rendering, must take place at the end of every loop
