@@ -123,6 +123,8 @@ int main(int, char**)
     float solaTimeScale = 0.5;
     float oldSolaTimeScale = 0.0;
 
+    float resampleTimeScale = 2.0;
+
     //Max number of samples allowed in plots
     int sampleLimit = 1e4;
 
@@ -180,6 +182,9 @@ int main(int, char**)
     bool flagSola = false;
     bool flagRecalculateSola = false;
     bool flag20msSola = false;
+
+    //Flags for frequency shift
+    bool flagFreqShift = false;
 
     //Start of code that matters
     while (!glfwWindowShouldClose(window)) {
@@ -257,17 +262,22 @@ int main(int, char**)
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
-            if (ImGui::InputFloat("TimeScale", &solaTimeScale, 0.05f, 0.2f)) {
+            if (ImGui::InputFloat("TimeScale (Sola)", &solaTimeScale, 0.05f, 0.2f)) {
+            }
+
+            if (ImGui::Button("Apply Resampling")) {
+                dataBuffer = vectorStuff::resampleToSize(dataBuffer, dataBuffer.size() * resampleTimeScale);
+                dataUpdated = true;
+            }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(100.0f);
+            if (ImGui::InputFloat("TimeScale (Resample)", &resampleTimeScale, 0.05f, 0.2f)) {
+
             }
 
             if (ImGui::Button("Write to temp.wav")) {
-                //wav.writeBuffer(rawSolaBuffer);
-                cout << "Raw sola buffer size: " << rawSolaBuffer.size() << "\n";
-                std::vector<std::int16_t> vectorOut = vectorStuff::resampleToSize(rawSolaBuffer, (int)wavData.size());
-                //Works perfectly, but only for single-channel.
-                cout << "vectorOut Size" << vectorOut.size() << "\n";
                 //Writes to disk
-                wav.writeBuffer(vectorOut);
+                wav.writeBuffer(dataBuffer);
             }
 
             ImGui::End();
@@ -381,36 +391,16 @@ int main(int, char**)
                 rawSolaBuffer//Data to send to
                 );//Length of data in
             newCalc.sola();
-
-            for (int i = 3000; i < 3100; i++) {
-                cout << wavData[i] << " " << rawSolaBuffer[i] << "\n";
-            }
-
             dataBuffer = rawSolaBuffer;
-
-            /*
-            {
-                int skip = 1;
-                for (int x = rightSize; x > sampleLimit; x = rightSize / skip) {
-                    skip++;
-                }
-                int j = 0;
-                for (int i = 0; i < rightSize; i++) {
-                    if (i % (skip) == 0 || i == 0) {
-                        dSolaBuffer[j] = solaBuffer[i];
-                        dSolaTime[j] = solaTime[i];
-                        j++;
-                        dSolaLength = j+1;
-                    }
-                }
-            }
-            */
-
             //Flag Reseting
             dataUpdated = true;
             flagRecalculateSola = false;
             flagSola = true;
             oldSolaTimeScale = solaTimeScale;
+        }
+
+        if (flagFreqShift) {
+
         }
 
 

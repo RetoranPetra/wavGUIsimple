@@ -1,12 +1,13 @@
 ﻿  Source.cpp
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(127,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(248,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(248,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(249,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(303,119): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(360,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(376,29): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(457,74): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(129,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(250,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(250,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(251,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(266,88): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(310,119): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(367,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(383,29): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(440,74): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Generating code
   1 of 1058 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
