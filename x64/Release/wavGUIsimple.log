@@ -7,8 +7,8 @@ C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(310,75): warnin
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(310,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(311,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(329,157): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(403,164): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(409,93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(402,164): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(408,93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(418,93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(486,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(502,29): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
@@ -18,8 +18,8 @@ C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(544,157): warni
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(555,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(612,89): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  4 of 1154 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+  1 of 1154 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    44 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe

@@ -146,7 +146,7 @@ int main(int, char**)
     float frequencyScale = 1.1;
 
     //Max number of samples allowed in plots
-    int sampleLimit = 1e4;
+    int sampleLimit = 3e3;
 
     //Stores wavdata
     vector<int16_t> wavData;
@@ -299,21 +299,22 @@ int main(int, char**)
                 windows[currentBuffer].dataBuffer = wavData;
                 windows[currentBuffer].dataUpdated = true;
             }
-
+            /*
             if (ImGui::Button("Plot wav in 20ms") && wav.is_open()) {
                 sampleOffset20ms = 0;
                 plotWindow20ms = true;
             }
-
+            */
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
                 if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
             }
+            /*
             if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
                 updateFourier = true;
             }
-
+            */
             if (ImGui::Button("Apply Sola to Buffer")) {
                 flagRecalculateSola = true;
             }
@@ -360,7 +361,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+        /*
         if (plotWindow20ms) {
             ImGui::Begin("Plotting Window 20ms Samples");
             if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
@@ -384,6 +385,7 @@ int main(int, char**)
 
             ImGui::End();
         }
+        */
         {
             std::stringstream ss;
             for (int i = 0; i < windows.size(); i++) {
@@ -399,7 +401,6 @@ int main(int, char**)
                     ss << "Plot of buffer " << i;
                     if (!windows[i].millisecMode) {
                         if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
-                            ss.str(std::string());
                             ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
                             ImPlot::EndPlot();
                         }
@@ -412,6 +413,7 @@ int main(int, char**)
                             ImPlot::EndPlot();
                         }
                     }
+                    ss.str(std::string());
                     if (windows[i].millisecMode) {
                         if (ImGui::InputInt("20ms sampleNumber", &windows[i].millisecCurrent, 1, 100)) {
                             windows[i].millisecUpdated = true;
@@ -434,7 +436,7 @@ int main(int, char**)
             }
         }
         
-        
+        /*
         if (plotFreq) {
             ImGui::Begin("Plotting Window Freq");
             if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
@@ -451,7 +453,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        
+        */
         //===========
         //Loop Checks
         //===========
