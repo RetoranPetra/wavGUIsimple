@@ -19,6 +19,10 @@
 #include "L2DFileDialog.h"
 #include <implot.h>
 
+//Audio Playback
+#include <Windows.h>
+#include <thread>
+
 #define GUI
 #define fileBuffer 100
 
@@ -38,6 +42,18 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
         }
     }
     return std::string(charPointer, charPointer + length);
+}
+
+void playOut() {
+    std::fstream fp;
+    fp.open("out.wav", std::ios::in);
+    if (fp.is_open()) {
+        PlaySound(L"out.wav", NULL, SND_SYNC);
+    }
+    else {
+        std::cout << "Failure to open out.wav\n";
+    }
+    fp.close();
 }
 
 
@@ -293,13 +309,14 @@ int main(int, char**)
                 }
             }
 
-
-
             if (ImGui::Button("Write to out.wav")) {
                 //Writes to disk
                 wav.writeBuffer(dataBuffer);
             }
 
+            if (ImGui::Button("Play out.wav")) {
+                playOut();
+            }
             ImGui::End();
         }
         
