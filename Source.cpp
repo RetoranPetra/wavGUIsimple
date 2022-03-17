@@ -56,6 +56,24 @@ void playOut() {
     fp.close();
 }
 
+void applySola(float freqScale, int processingSamples, int overlapSamples, int overlapSeekSamples, vector<int16_t> sampleIn, vector<int16_t> &sampleOut) { //Input in number of samples for sizes
+    int size = (int)(sampleIn.size() * freqScale); //1.1f than it needs to be to account for errors in algorithm
+
+    vector<int16_t> temp;
+    temp.resize(size);
+
+    //Sola with default values
+    SOLA newCalc(1.0 / freqScale,
+        processingSamples,//Processing sequence size
+        overlapSamples,//Overlap size
+        overlapSeekSamples,//Seek for best overlap size
+        sampleIn,//Data to read from
+        temp//Data to send to
+    );//Length of data in
+    newCalc.sola();
+    sampleOut = temp;
+}
+
 
 int main(int, char**)
 {
@@ -494,22 +512,7 @@ int main(int, char**)
         }
 
         if (flagRecalculateSola) {
-            int size = (int)(windows[currentBuffer].dataBuffer.size() * solaTimeScale); //1.1f than it needs to be to account for errors in algorithm
-
-            //Expands solaBuffer
-            rawSolaBuffer.clear();
-            rawSolaBuffer.resize(size);
-            
-            //Sola with default values
-            SOLA newCalc(1.0/solaTimeScale,
-                wav.getSampleNum_ms(100),//Processing sequence size
-                wav.getSampleNum_ms(20),//Overlap size
-                wav.getSampleNum_ms(15),//Seek for best overlap size
-                windows[currentBuffer].dataBuffer,//Data to read from
-                rawSolaBuffer//Data to send to
-                );//Length of data in
-            newCalc.sola();
-            windows[currentBuffer].dataBuffer = rawSolaBuffer;
+            applySola(frequencyScale, wav.getSampleNum_ms(100), wav.getSampleNum_ms(20), wav.getSampleNum_ms(15), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
             //Flag Reseting
             windows[currentBuffer].dataUpdated = true;
             flagRecalculateSola = false;
@@ -519,50 +522,16 @@ int main(int, char**)
 
         if (flagFreqShift) {
             if (frequencyScale > 1.0) {
-                //Sola
 
-                int size = (int)(windows[currentBuffer].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
-
-                //Expands solaBuffer
-                rawSolaBuffer.clear();
-                rawSolaBuffer.resize(size);
-
-                //Sola with default values
-                SOLA newCalc(1.0 / frequencyScale,
-                    wav.getSampleNum_ms(100),//Processing sequence size
-                    wav.getSampleNum_ms(20),//Overlap size
-                    wav.getSampleNum_ms(15),//Seek for best overlap size
-                    windows[currentBuffer].dataBuffer,//Data to read from
-                    rawSolaBuffer//Data to send to
-                );//Length of data in
-                newCalc.sola();
-                windows[currentBuffer].dataBuffer = rawSolaBuffer;
-
+                applySola(frequencyScale, wav.getSampleNum_ms(100), wav.getSampleNum_ms(20), wav.getSampleNum_ms(15), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
                 //Resample
                 windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
             }
             else if (frequencyScale < 1.0) {
                 //Resample
                 windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
-
                 //Sola
-
-                int size = (int)(windows[currentBuffer].dataBuffer.size() * frequencyScale); //1.1f than it needs to be to account for errors in algorithm
-
-                //Expands solaBuffer
-                rawSolaBuffer.clear();
-                rawSolaBuffer.resize(size);
-
-                //Sola with default values
-                SOLA newCalc(1.0 / frequencyScale,
-                    wav.getSampleNum_ms(100),//Processing sequence size
-                    wav.getSampleNum_ms(20),//Overlap size
-                    wav.getSampleNum_ms(15),//Seek for best overlap size
-                    windows[currentBuffer].dataBuffer,//Data to read from
-                    rawSolaBuffer//Data to send to
-                );//Length of data in
-                newCalc.sola();
-                windows[currentBuffer].dataBuffer = rawSolaBuffer;
+                applySola(frequencyScale, wav.getSampleNum_ms(100), wav.getSampleNum_ms(20), wav.getSampleNum_ms(15), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
             }
             windows[currentBuffer].dataUpdated = true;
             flagFreqShift = false;
