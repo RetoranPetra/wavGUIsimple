@@ -100,6 +100,34 @@ void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float
     }
 }
 
+void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int windowSize) {
+    int windowNum = dataIn.size() / windowSize;
+    magnitude.resize(windowSize);
+    freq.resize(windowSize);
+    for (int j = 0; j < windowNum; j++) {
+        FFT::CArray temp;
+        temp.resize(windowSize);
+        for (int i = 0; i < windowSize; i++) {
+            temp[i].real((float)dataIn[i+windowNum*j]/(float)pow(2,15));
+        }
+        //Applies fourier transform to buffer
+        FFT::fft(temp);
+        //convert to y values
+        for (int i = 0; i < windowSize; i++) {
+            magnitude[i]+= abs(temp[i]);
+        }
+    }
+    for (int i = 0; i < windowSize; i++) {
+        magnitude[i] = magnitude[i] / (float)windowNum;
+    }
+
+
+    //convert to x values
+    for (int i = 0; i < windowSize; i++) {
+        freq[i] = (double)(i * sampleRate) / (double)windowSize;
+    }
+}
+
 
 int main(int, char**)
 {
@@ -598,8 +626,11 @@ int main(int, char**)
 
         
         if (updateFourier) {
-            //Apply fourier transform
-            applyFourier(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate());
+            //int fourierWindowSize = wav.getSampleNum_ms(20);
+            int fourierWindowSize = wav.getSampleRate();
+
+            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), fourierWindowSize);
+
             updateFourier = false;
             windows[currentBuffer].showFourier = true;
         }
