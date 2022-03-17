@@ -74,6 +74,32 @@ void applySola(float freqScale, int processingSamples, int overlapSamples, int o
     sampleOut = temp;
 }
 
+void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate) {
+    FFT::CArray temp;
+    temp.resize(dataIn.size());
+    for (int i = 0; i < dataIn.size(); i++) {
+        temp[i].real(dataIn[i]);
+    }
+    //Applies fourier transform to buffer
+    FFT::fft(temp);
+
+    //initialises arrays for xvals
+    freq.clear();
+    magnitude.clear();
+    freq.resize(dataIn.size());
+    magnitude.resize(dataIn.size());
+
+    //convert to x values
+    for (int i = 0; i < dataIn.size(); i++) {
+        freq[i] = (double)(i * sampleRate) / (double)dataIn.size();
+    }
+
+    //convert to y values
+    for (int i = 0; i < dataIn.size(); i++) {
+        magnitude[i] = abs(temp[i]);
+    }
+}
+
 
 int main(int, char**)
 {
@@ -180,14 +206,24 @@ int main(int, char**)
 
     //Databuffer system saved
     struct dataWindow{
+        //Data display stuff
         vector<float> dataDisplay;
         vector<float> dataTimeDisplay;
         vector<int16_t> dataBuffer;
+
+        //Fourier buffer stuff
+        vector<float> fourierMag;
+        vector<float> fourierFreq;
+
+        //Flags
         bool dataUpdated = false;
         bool showBuffer = false;
+        //millisec mode flags
         bool millisecMode = false;
         int millisecCurrent = 0;
         bool millisecUpdated = false;
+        //Fourier flags
+        bool showFourier = false;
     };
     
     vector<dataWindow> windows;
@@ -426,7 +462,7 @@ int main(int, char**)
                     else {
                         if (windows[i].millisecUpdated) { ImPlot::FitNextPlotAxes(); windows[i].millisecUpdated = false; }//recentres plot
                         int samples = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
-                        if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
+                        if (ImPlot::BeginPlot((ss.str() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
                             ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].dataBuffer[samples * windows[i].millisecCurrent], samples); //need timescale
                             ImPlot::EndPlot();
                         }
@@ -445,10 +481,30 @@ int main(int, char**)
                         }
                     }
 
-
-                    std::stringstream ss;
                     ss << "Samples: " << windows[i].dataBuffer.size();
                     ImGui::Text(ss.str().c_str());
+                    ss.str(std::string());
+
+                    ss << "Plot of buffer " << i << "'s frequencies";
+
+                    if (ImGui::Button("Fourier!")) {
+                        updateFourier = true;
+                    }
+
+                    if (windows[i].showFourier) {
+                        if (ImPlot::BeginPlot(
+                            ss.str().c_str(),
+                            "Freq (Hz)",
+                            "Magnitude"
+                            , ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_LogScale, ImPlotAxisFlags_LogScale //Logscale doesn't work, no idea why.
+                        )) {
+                            //Converts float to new array as data is stored continguously in vectors, same as arrays.
+                            //cout << "Size of 20ms is: " << size << "\n";
+                            ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].fourierFreq[0], &windows[i].fourierMag[0], windows[i].fourierMag.size()/2);//divided by two to only show positive freq values
+                            ImPlot::EndPlot();
+                        }
+                    }
+
                     ImGui::End();
                 }
             }
@@ -542,36 +598,10 @@ int main(int, char**)
 
         
         if (updateFourier) {
-            fourierBuffer.resize(sampleNum20ms);
-            for (int i = 0; i < sampleNum20ms; i++) {
-                fourierBuffer[i].real(trueValsFloat[i + sampleOffset20ms * sampleNum20ms]);
-            }
-            //Applies fourier transform to buffer
-            FFT::fft(fourierBuffer);
-
-            //initialises arrays for xvals
-            fftXVals.clear();
-            fftYVals.clear();
-            fftXVals.resize(sampleNum20ms);
-            fftYVals.resize(sampleNum20ms);
-
-            int sampleFreq = wav.getSampleRate();
-
-            //convert to x values
-            for (int i = 0; i < sampleNum20ms; i++) {
-                fftXVals[i] = (double)(i * sampleFreq) / (double)sampleNum20ms;
-            }
-
-            //convert to y values
-            for (int i = 0; i < sampleNum20ms; i++) {
-                fftYVals[i] = abs(fourierBuffer[i]);
-            }
-            //cleans up buffer when done
-            fourierBuffer = FFT::CArray();
+            //Apply fourier transform
+            applyFourier(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate());
             updateFourier = false;
-            offsetUpdatedFreq = true;
-            offsetUpdatedFreqSola = true;
-            plotFreq = true;
+            windows[currentBuffer].showFourier = true;
         }
 
         //Updating display values of the buffer
