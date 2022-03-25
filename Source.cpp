@@ -105,11 +105,22 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     magnitude.resize(windowSize);
     freq.resize(windowSize);
     for (int j = 0; j < windowNum; j++) {
+        
         FFT::CArray temp;
         temp.resize(windowSize);
         for (int i = 0; i < windowSize; i++) {
-            temp[i].real((float)dataIn[i+windowNum*j]/(float)pow(2,15));
+            int index = i + windowNum * j; //If overshoots, just replaces rest of window with 0s
+            if (index >= dataIn.size()) {
+                temp[i].real(0);
+            }
+            else {
+                temp[i].real(dataIn[i + windowNum * j]);
+            }
+            //std::cout << temp[i] << "\n";
         }
+
+        
+
         //Applies fourier transform to buffer
         FFT::fft(temp);
         //convert to y values
@@ -118,7 +129,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
         }
     }
     for (int i = 0; i < windowSize; i++) {
-        magnitude[i] = magnitude[i] / (float)windowNum;
+        magnitude[i] = magnitude[i] / (float)windowNum / (float)pow(2, 15);
     }
 
 
@@ -243,6 +254,16 @@ int main(int, char**)
         vector<float> fourierMag;
         vector<float> fourierFreq;
 
+
+        //Currently unimplemented outside of here
+        //Display vectors of fourier stuff
+        vector<float> magDisplay;
+        vector<float> freqDisplay;
+
+
+        //need a way to prevent problems with databuffer changing from window to window, each window should have its own databuffer logically.
+
+
         //Flags
         bool dataUpdated = false;
         bool showBuffer = false;
@@ -252,6 +273,9 @@ int main(int, char**)
         bool millisecUpdated = false;
         //Fourier flags
         bool showFourier = false;
+
+        int fourierSize = 1024;
+        int fourierSizePower = 10;
     };
     
     vector<dataWindow> windows;
@@ -511,13 +535,32 @@ int main(int, char**)
 
                     ss << "Samples: " << windows[i].dataBuffer.size();
                     ImGui::Text(ss.str().c_str());
-                    ss.str(std::string());
 
-                    ss << "Plot of buffer " << i << "'s frequencies";
 
                     if (ImGui::Button("Fourier!")) {
                         updateFourier = true;
                     }
+                    ss.str(std::string());
+
+                    ss << "Size " << windows[i].fourierSize;
+
+
+                    ImGui::Text(ss.str().c_str());
+                    ss.str(std::string());
+                    ImGui::SameLine();
+
+                    ImGui::SetNextItemWidth(20.0f);
+                    if (ImGui::InputInt("Buffer Size", &windows[i].fourierSizePower, 1, 10)) {
+                        if (windows[i].fourierSizePower < 7) {
+                            windows[i].fourierSizePower = 7;
+                        }
+                        windows[i].fourierSize = (1 << windows[i].fourierSizePower);//Returns power of 2
+                    }
+
+
+                    ss.str(std::string());
+
+                    ss << "Plot of buffer " << i << "'s frequencies";
 
                     if (windows[i].showFourier) {
                         if (ImPlot::BeginPlot(
@@ -627,9 +670,8 @@ int main(int, char**)
         
         if (updateFourier) {
             //int fourierWindowSize = wav.getSampleNum_ms(20);
-            int fourierWindowSize = wav.getSampleRate();
 
-            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), fourierWindowSize);
+            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
 
             updateFourier = false;
             windows[currentBuffer].showFourier = true;
