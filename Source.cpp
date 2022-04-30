@@ -146,27 +146,56 @@ void applyFourierWindowed2(vector<int16_t> dataIn, vector<float>& magnitude, vec
     }
 }
 
-void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int waveSize) {
-    int pow2Size = intLog2(waveSize)+1;
-    int windowSize = (1 << pow2Size); //Power of 2 shortcut for ints
-    int waveNum = dataIn.size() / waveSize;
+//Windowsize should always be a power of 2
+void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int waveSize, int windowSize) {
+
     magnitude.resize(windowSize);
     freq.resize(windowSize);
-    for (int j = 0; j < waveNum; j++) {
 
-        FFT::CArray temp(windowSize);
-        for (int i = 0; i < waveSize+1; i++) {
-            int index = i + windowSize * j; //If overshoots, just replaces rest of window with 0s
-            if (index >= dataIn.size()) {
-                temp[i].real(0);
+    int numberOfWindows = 0; //Counter for number of windows so can calculate average at end for magnitude
+    int dataCounter = 0; //Place in data
+    int previousDataCounter = 0; //Stores previous place in data before last wave end point found.
+    int previousFourierDataCounter = 0; //Stores last place fourier was applied up to.
+    int numberOfWaves = 0; //Number of full waves passed in total
+    int waveSum = 0; //Summation of all found wave lengths to crossing point
+
+    while ((previousFourierDataCounter + windowSize) < dataIn.size()) {//When more windows added would overshoot data size, stop loop.
+        while (((dataCounter+waveSize) - previousFourierDataCounter) < windowSize) {//When more waves discovered would overshoot windowsize, stop loop.
+            dataCounter = dataCounter + waveSize;
+
+
+            //Loop setup
+            bool sign = true; //True positive, false negative
+            int checkPoint = dataCounter; //Marks centre point of search
+            for (int i = 1;; i++) {
+                //std::cout << "Seek " << i << "\n";
+                dataCounter = checkPoint + i;
+                if (dataIn[dataCounter] != 0) { break; }
+                dataCounter = checkPoint - i;
+                if (dataIn[dataCounter] != 0) { break; }
+            }
+        
+            //Found crossing point at datacounter, update number of waves passed.
+            numberOfWaves++;
+            //Need to readjust estimated wavesize.
+            int thisWaveSize = dataCounter - previousDataCounter;
+            waveSum += thisWaveSize; waveSize = waveSum / numberOfWaves; //Readjusts sum and updates waveSize to average of sum.
+            previousDataCounter = dataCounter; //Updates previousdata counter to current before next loop
+            std::cout << "WaveSize" << thisWaveSize << "Avg " << waveSize << "\n";
+        }
+        //Creates temporary CArray to perform the fourier transform upon.
+        FFT::CArray temp;
+        temp.resize(windowSize);
+
+        //Takes found series of waveforms under the buffer size, places in complex array. 0 pads rest.
+        for (int i = 0; i < windowSize;i++) {
+            if (i < (dataCounter - previousFourierDataCounter)) {
+                temp[i].real(dataIn[previousFourierDataCounter + i]);
             }
             else {
-                temp[i].real(dataIn[index]);
+                temp[i].real(0);
             }
-            if (j == 1) { std::cout << temp[i] << "\n"; }
         }
-
-
 
         //Applies fourier transform to buffer
         FFT::fft(temp);
@@ -174,9 +203,16 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
         for (int i = 0; i < windowSize; i++) {
             magnitude[i] += abs(temp[i]);
         }
+        //Increment number of windows for magnitude average calculation
+        numberOfWindows++;
+        previousFourierDataCounter = dataCounter;
     }
+    std::cout << "Number of waves" << numberOfWaves << "\n";
+    std::cout << "Number of windows" << numberOfWindows << "\n";
+
+
     for (int i = 0; i < windowSize; i++) {
-        magnitude[i] = magnitude[i] / (float)waveNum / (float)pow(2, 15);
+        magnitude[i] = magnitude[i] / (float)numberOfWindows / (float)pow(2, 15);
     }
 
 
@@ -672,8 +708,8 @@ int main(int, char**)
             plotFreq = false;
 
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
-            cout << buffer << " has been auto-opened\n";
             wav.openSpecific(buffer);
+            cout << buffer << " has been auto-opened\n";
             fileSelectionBuffer = new char[fileBuffer]();
             sampleNum20ms = wav.getSampleNum_ms(20);
             wavData = wav.dataToVector();
@@ -727,9 +763,11 @@ int main(int, char**)
 
             //applyFourierWindowed2(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
 
-            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 100*1.0/1000.0*wav.getSampleRate());
-
             cout << 1.0 / 1000.0 * wav.getSampleRate() << "\n";
+
+            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0/1000.0*wav.getSampleRate(), windows[currentBuffer].fourierSize);
+
+            
 
             updateFourier = false;
             windows[currentBuffer].showFourier = true;
