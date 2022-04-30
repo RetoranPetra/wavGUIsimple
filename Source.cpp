@@ -167,12 +167,17 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
             //Loop setup
             bool sign = true; //True positive, false negative
             int checkPoint = dataCounter; //Marks centre point of search
+
+
+            //Debug stuff
+            int sampleOffBy = 0;
+
             for (int i = 1;; i++) {
                 //std::cout << "Seek " << i << "\n";
                 dataCounter = checkPoint + i;
-                if (dataIn[dataCounter] != 0) { break; }
+                if (dataIn[dataCounter] != 0) { sampleOffBy = i; break; }
                 dataCounter = checkPoint - i;
-                if (dataIn[dataCounter] != 0) { break; }
+                if (dataIn[dataCounter] != 0) { sampleOffBy = i; break; }
             }
         
             //Found crossing point at datacounter, update number of waves passed.
@@ -181,7 +186,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
             int thisWaveSize = dataCounter - previousDataCounter;
             waveSum += thisWaveSize; waveSize = waveSum / numberOfWaves; //Readjusts sum and updates waveSize to average of sum.
             previousDataCounter = dataCounter; //Updates previousdata counter to current before next loop
-            std::cout << "WaveSize" << thisWaveSize << "Avg " << waveSize << "\n";
+            std::cout << "WaveSize" << thisWaveSize << "Avg " << waveSize << "Deviation" << sampleOffBy << "\n";
         }
         //Creates temporary CArray to perform the fourier transform upon.
         FFT::CArray temp;
@@ -359,6 +364,7 @@ int main(int, char**)
 
         int fourierSize = 1024;
         int fourierSizePower = 10;
+        float waveFreq = 1000;
     };
     
     vector<dataWindow> windows;
@@ -639,6 +645,11 @@ int main(int, char**)
                         }
                         windows[i].fourierSize = (1 << windows[i].fourierSizePower);//Returns power of 2
                     }
+                    if (ImGui::InputFloat("Estimated frequency", &windows[i].waveFreq, 100, 1000)) {
+                        if (windows[i].waveFreq == 0 || windows[i].waveFreq < 0) {
+                            windows[i].waveFreq = 1;
+                        }
+                    }
 
 
                     ss.str(std::string());
@@ -765,7 +776,7 @@ int main(int, char**)
 
             cout << 1.0 / 1000.0 * wav.getSampleRate() << "\n";
 
-            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0/1000.0*wav.getSampleRate(), windows[currentBuffer].fourierSize);
+            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0/windows[currentBuffer].waveFreq*wav.getSampleRate(), windows[currentBuffer].fourierSize);
 
             
 
