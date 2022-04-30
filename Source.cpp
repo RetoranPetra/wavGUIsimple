@@ -28,6 +28,13 @@
 
 using std::vector;
 
+
+int intLog2(int value) {
+    int bitNumber = 0;
+    for (; value >> bitNumber != 1; bitNumber++);
+    return bitNumber;
+}
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -100,7 +107,7 @@ void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float
     }
 }
 
-void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int windowSize) {
+void applyFourierWindowed2(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int windowSize) {
     int windowNum = dataIn.size() / windowSize;
     magnitude.resize(windowSize);
     freq.resize(windowSize);
@@ -130,6 +137,46 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     }
     for (int i = 0; i < windowSize; i++) {
         magnitude[i] = magnitude[i] / (float)windowNum / (float)pow(2, 15);
+    }
+
+
+    //convert to x values
+    for (int i = 0; i < windowSize; i++) {
+        freq[i] = (double)(i * sampleRate) / (double)windowSize;
+    }
+}
+
+void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int waveSize) {
+    int pow2Size = intLog2(waveSize)+1;
+    int windowSize = (1 << pow2Size); //Power of 2 shortcut for ints
+    int waveNum = dataIn.size() / waveSize;
+    magnitude.resize(windowSize);
+    freq.resize(windowSize);
+    for (int j = 0; j < waveNum; j++) {
+
+        FFT::CArray temp(windowSize);
+        for (int i = 0; i < waveSize+1; i++) {
+            int index = i + windowSize * j; //If overshoots, just replaces rest of window with 0s
+            if (index >= dataIn.size()) {
+                temp[i].real(0);
+            }
+            else {
+                temp[i].real(dataIn[index]);
+            }
+            if (j == 1) { std::cout << temp[i] << "\n"; }
+        }
+
+
+
+        //Applies fourier transform to buffer
+        FFT::fft(temp);
+        //convert to y values
+        for (int i = 0; i < windowSize; i++) {
+            magnitude[i] += abs(temp[i]);
+        }
+    }
+    for (int i = 0; i < windowSize; i++) {
+        magnitude[i] = magnitude[i] / (float)waveNum / (float)pow(2, 15);
     }
 
 
@@ -571,10 +618,17 @@ int main(int, char**)
                         )) {
                             //Converts float to new array as data is stored continguously in vectors, same as arrays.
                             //cout << "Size of 20ms is: " << size << "\n";
-                            ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].fourierFreq[0], &windows[i].fourierMag[0], windows[i].fourierMag.size()/2);//divided by two to only show positive freq values
+                            ImPlot::PlotLine(ss.str().c_str(), &windows[i].fourierFreq[0], &windows[i].fourierMag[0], windows[i].fourierMag.size()/2);//divided by two to only show positive freq values
                             ImPlot::EndPlot();
                         }
                     }
+                    ss.str(std::string());
+
+                    ss << "Total Harmonic Distortion" << vectorStuff::totalHarmonicDistortion(windows[i].fourierMag);
+
+                    ImGui::Text(ss.str().c_str());
+                    ss.str(std::string());
+                    ImGui::SameLine();
 
                     ImGui::End();
                 }
@@ -671,7 +725,11 @@ int main(int, char**)
         if (updateFourier) {
             //int fourierWindowSize = wav.getSampleNum_ms(20);
 
-            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
+            //applyFourierWindowed2(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
+
+            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 100*1.0/1000.0*wav.getSampleRate());
+
+            cout << 1.0 / 1000.0 * wav.getSampleRate() << "\n";
 
             updateFourier = false;
             windows[currentBuffer].showFourier = true;

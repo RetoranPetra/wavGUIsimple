@@ -291,18 +291,16 @@ namespace vectorStuff {
     float totalHarmonicDistortion(std::vector<float> vectorIn) {
         float highest = 0;
         int highestIndex = 0;
+        float sum = 0;
         for (int i = 0; i < vectorIn.size(); i++) {
             if (vectorIn[i] > highest) {
                 highest = vectorIn[i];
                 highestIndex = i;
             }
+            sum += vectorIn[i];
         }
-        float sum = 0;
-        for (int i = 0; i < vectorIn.size(); i++) {
-            if (i != highestIndex) {
-                sum += vectorIn[i];
-            }
-        }
-        return highest / sum;
+        sum -= highest * 2;
+
+        return sum/highest*2; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
     }
 }
