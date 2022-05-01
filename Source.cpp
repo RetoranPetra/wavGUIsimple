@@ -193,6 +193,12 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
                 if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter + 1] * (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter - 1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
                 dataCounter = checkPoint - i;
                 if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter + 1] * (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter - 1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
+
+
+                if (i > waveSize / 2) {
+                    dataCounter = checkPoint;
+                    fileOut << "Error in seeking crossing. Returned to default position.\n";
+                }
             }
         
             //Found crossing point at datacounter, update number of waves passed.
@@ -346,7 +352,6 @@ int main(int, char**)
     //gnuPlotter gnu;
 
     bool wavWindow = false;
-    bool plotWindow20ms = false;
 
     bool plotWindowSOLA = false;
 
@@ -761,7 +766,6 @@ int main(int, char**)
         //Checks if file selection buffer has anything in it, if it does, opens up the wav.
         if (!(*fileSelectionBuffer == NULL)) {
             //Destroys plot windows to prevent problems
-            plotWindow20ms = false;
             plotFreq = false;
 
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);

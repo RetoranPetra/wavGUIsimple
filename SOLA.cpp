@@ -52,7 +52,7 @@ void SOLA::sola() {
 	int numSamplesIn = inputLength-1;
 
 	//Main loop, does SOLA stuff.
-	while (numSamplesIn >processDistance+seekWindow) {
+	while (numSamplesIn > processDistance+seekWindow) {
 		//Copies flat to output vector
 		memcpy(l_output, seq_offset, flatDuration * sizeof(int16_t)); //Need to use sizeof due to this being a legacy C function, doesn't do it automatically
 
@@ -82,16 +82,6 @@ void SOLA::sola() {
 		numSamplesIn -= processDistance;
 	}
 
-}
-
-void SOLA::reSample() {//Untested, need to check later
-	float ratio = (float)output.size() / (float)input.size();
-	float sum = 0.0f;
-	for (int i = 0; i < input.size(),sum<output.size(); i++) {
-		sum += ratio;
-		output[i] = output[(int)sum];
-	}
-	output.resize(input.size());
 }
 
 SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){

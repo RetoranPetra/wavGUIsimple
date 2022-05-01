@@ -289,18 +289,22 @@ namespace vectorStuff {
     }
 
     float totalHarmonicDistortion(std::vector<float> vectorIn) {
-        float highest = 0;
+        //Using squares, aka power as is traditional. Amplifies magnitude difference between noise and fundamental.
+
+
+        double highest = 0;
         int highestIndex = 0;
-        float sum = 0;
-        for (int i = 0; i < vectorIn.size(); i++) {
-            if (vectorIn[i] > highest) {
-                highest = vectorIn[i];
+        double sum = 0;
+        for (int i = 0; i < vectorIn.size()/2; i++) {
+            double current = (double)vectorIn[i] * (double)vectorIn[i];
+            if (current > highest) {
+                highest = current;
                 highestIndex = i;
             }
-            sum += vectorIn[i];
+            sum += current;
         }
-        sum -= highest * 2;
+        sum -= highest; //Remove highest from summation
 
-        return sum/highest*2; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
+        return sum/highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
     }
 }
