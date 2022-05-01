@@ -220,6 +220,9 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
         //Takes found series of waveforms under the buffer size, places in complex array. 0 pads rest.
 
+        int offsetToCentre = (windowSize - (dataCounter - previousFourierDataCounter) - 1)/2; //-1 needed due to final 0 to end waveform not being included in count otherwise.
+
+        fileOut << "Offset to centre: " << offsetToCentre << "\n";
         
         fileOut << "Window: " << numberOfWindows << "\n";
         for (int i = 0; i < windowSize;i++) {

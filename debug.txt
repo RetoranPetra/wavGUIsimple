@@ -1,3 +1,4 @@
+Offset to centre: 8
 Window: 0
 (0,0)
 (2138,0)
@@ -1023,6 +1024,7 @@ Window: 0
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 1
 (0,0)
 (2138,0)
@@ -2048,6 +2050,7 @@ Window: 1
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 2
 (0,0)
 (2138,0)
@@ -3073,6 +3076,7 @@ Window: 2
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 3
 (0,0)
 (2138,0)
@@ -4098,6 +4102,7 @@ Window: 3
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 4
 (0,0)
 (2138,0)
@@ -5123,6 +5128,7 @@ Window: 4
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 5
 (0,0)
 (2138,0)
@@ -6148,6 +6154,7 @@ Window: 5
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 6
 (0,0)
 (2138,0)
@@ -7173,6 +7180,7 @@ Window: 6
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 7
 (0,0)
 (2138,0)
@@ -8198,6 +8206,7 @@ Window: 7
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 8
 (0,0)
 (2138,0)
@@ -9223,6 +9232,7 @@ Window: 8
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 9
 (0,0)
 (2138,0)
@@ -10248,6 +10258,7 @@ Window: 9
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 10
 (0,0)
 (2138,0)
@@ -11273,6 +11284,7 @@ Window: 10
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 11
 (0,0)
 (2138,0)
@@ -12298,6 +12310,7 @@ Window: 11
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 12
 (0,0)
 (2138,0)
@@ -13323,6 +13336,7 @@ Window: 12
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 13
 (0,0)
 (2138,0)
@@ -14348,6 +14362,7 @@ Window: 13
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 14
 (0,0)
 (2138,0)
@@ -15373,6 +15388,7 @@ Window: 14
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 15
 (0,0)
 (2138,0)
@@ -16398,6 +16414,7 @@ Window: 15
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 16
 (0,0)
 (2138,0)
@@ -17423,6 +17440,7 @@ Window: 16
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 17
 (0,0)
 (2138,0)
@@ -18448,6 +18466,7 @@ Window: 17
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 18
 (0,0)
 (2138,0)
@@ -19473,6 +19492,7 @@ Window: 18
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 19
 (0,0)
 (2138,0)
@@ -20498,6 +20518,7 @@ Window: 19
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 20
 (0,0)
 (2138,0)
@@ -21523,6 +21544,7 @@ Window: 20
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 21
 (0,0)
 (2138,0)
@@ -22548,6 +22570,7 @@ Window: 21
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 22
 (0,0)
 (2138,0)
@@ -23573,6 +23596,7 @@ Window: 22
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 23
 (0,0)
 (2138,0)
@@ -24598,6 +24622,7 @@ Window: 23
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 24
 (0,0)
 (2138,0)
@@ -25623,6 +25648,7 @@ Window: 24
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 25
 (0,0)
 (2138,0)
@@ -26648,6 +26674,7 @@ Window: 25
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 26
 (0,0)
 (2138,0)
@@ -27673,6 +27700,7 @@ Window: 26
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 27
 (0,0)
 (2138,0)
@@ -28698,6 +28726,7 @@ Window: 27
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 28
 (0,0)
 (2138,0)
@@ -29723,6 +29752,7 @@ Window: 28
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 29
 (0,0)
 (2138,0)
@@ -30748,6 +30778,7 @@ Window: 29
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 30
 (0,0)
 (2138,0)
@@ -31773,6 +31804,7 @@ Window: 30
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 31
 (0,0)
 (2138,0)
@@ -32798,6 +32830,7 @@ Window: 31
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 32
 (0,0)
 (2138,0)
@@ -33823,6 +33856,7 @@ Window: 32
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 33
 (0,0)
 (2138,0)
@@ -34848,6 +34882,7 @@ Window: 33
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 34
 (0,0)
 (2138,0)
@@ -35873,6 +35908,7 @@ Window: 34
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 35
 (0,0)
 (2138,0)
@@ -36898,6 +36934,7 @@ Window: 35
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 36
 (0,0)
 (2138,0)
@@ -37923,6 +37960,7 @@ Window: 36
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 37
 (0,0)
 (2138,0)
@@ -38948,6 +38986,7 @@ Window: 37
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 38
 (0,0)
 (2138,0)
@@ -39973,6 +40012,7 @@ Window: 38
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 39
 (0,0)
 (2138,0)
@@ -40998,6 +41038,7 @@ Window: 39
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 40
 (0,0)
 (2138,0)
@@ -42023,6 +42064,7 @@ Window: 40
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 41
 (0,0)
 (2138,0)
@@ -43048,6 +43090,7 @@ Window: 41
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 42
 (0,0)
 (2138,0)
@@ -44073,6 +44116,7 @@ Window: 42
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 43
 (0,0)
 (2138,0)
@@ -45098,6 +45142,7 @@ Window: 43
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 44
 (0,0)
 (2138,0)
@@ -46123,6 +46168,7 @@ Window: 44
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 45
 (0,0)
 (2138,0)
@@ -47148,6 +47194,7 @@ Window: 45
 (0,0)
 (0,0)
 (0,0)
+Offset to centre: 8
 Window: 46
 (0,0)
 (2138,0)
