@@ -206,50 +206,6 @@ namespace vectorStuff {
 //#define average
 
 //Averaging version of function evens out outliers, at expense of computing time. Looks odd though and not representative of the wave, even if more accurate at a small scale.
-#ifdef average
-    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
-        int sum = 0;
-        int absSum = 0;
-        int size = vectorIn.size();
-        int skip = 1;
-        for (int x = size; x > maxSize; x = size / skip) {
-            skip++;
-        }
-        //To be removed
-        cout << "Skip decided as" << skip << "\n";
-        std::vector<std::int16_t> vectorOut;
-        for (int i = 0; i < size; i++) {
-            sum += vectorIn[i];
-            absSum += abs(vectorIn[i]);
-            if (i % (skip) == 0) {
-                if (sum > 0) {
-                    vectorOut.push_back((int16_t)((absSum) / (skip)));
-                }
-                else {
-                    vectorOut.push_back((int16_t)((-absSum) / (skip)));
-                }
-                sum = 0;
-                absSum = 0;
-            }
-        }
-        return vectorOut;
-}
-#else
-    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
-        int size = vectorIn.size();
-        int skip = 1;
-        for (int x = size; x > maxSize; x = size / skip) {
-            skip++;
-        }
-        std::vector<std::int16_t> vectorOut;
-        for (int i = 0; i < size; i++) {
-            if (i % (skip) == 0) {
-                vectorOut.push_back(vectorIn[i]);
-            }
-        }
-        return vectorOut;
-}
-#endif
     void floatData(int16_t* start, float* fstart, int length) {
         for (int i = 0; i < length; i++) {
             fstart[i] = (float)start[i] / pow(2, 15);
@@ -307,4 +263,54 @@ namespace vectorStuff {
 
         return sum/highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
     }
+
+
+    //Depreciated functions
+
+/*
+#ifdef average
+    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
+        int sum = 0;
+        int absSum = 0;
+        int size = vectorIn.size();
+        int skip = 1;
+        for (int x = size; x > maxSize; x = size / skip) {
+            skip++;
+        }
+        //To be removed
+        cout << "Skip decided as" << skip << "\n";
+        std::vector<std::int16_t> vectorOut;
+        for (int i = 0; i < size; i++) {
+            sum += vectorIn[i];
+            absSum += abs(vectorIn[i]);
+            if (i % (skip) == 0) {
+                if (sum > 0) {
+                    vectorOut.push_back((int16_t)((absSum) / (skip)));
+                }
+                else {
+                    vectorOut.push_back((int16_t)((-absSum) / (skip)));
+                }
+                sum = 0;
+                absSum = 0;
+            }
+        }
+        return vectorOut;
+}
+#else
+    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize) {
+        int size = vectorIn.size();
+        int skip = 1;
+        for (int x = size; x > maxSize; x = size / skip) {
+            skip++;
+        }
+        std::vector<std::int16_t> vectorOut;
+        for (int i = 0; i < size; i++) {
+            if (i % (skip) == 0) {
+                vectorOut.push_back(vectorIn[i]);
+            }
+        }
+        return vectorOut;
+}
+#endif
+*/
 }

@@ -376,9 +376,6 @@ int main(int, char**)
 
     //Stores wavdata
     vector<int16_t> wavData;
-    //Stores wavdata in float format for reading by 20ms window
-    vector<float> wavTime;
-    vector<float> trueValsFloat;
 
     //Stores values directly gotten from applying sola to the data
     vector<float> solaBuffer;
@@ -657,8 +654,14 @@ int main(int, char**)
                     ImGui::Text(ss.str().c_str());
 
 
-                    if (ImGui::Button("Fourier!")) {
-                        updateFourier = true;
+                    if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
+                        applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0 / windows[currentBuffer].waveFreq * wav.getSampleRate(), windows[currentBuffer].fourierSize);
+                        windows[currentBuffer].showFourier = true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Fourier")) {
+                        applyFourierWindowedSimple(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
+                        windows[currentBuffer].showFourier = true;
                     }
                     ss.str(std::string());
 
@@ -753,18 +756,6 @@ int main(int, char**)
             fileSelectionBuffer = new char[fileBuffer]();
             wavData = wav.dataToVector();
             sampleRate = wav.getSampleRate();
-
-            //Initialisation/cleanup of pointers
-            wavTime.clear(); trueValsFloat.clear();
-            wavTime.resize(wavData.size());
-            trueValsFloat.resize(wavData.size());
-
-            vectorStuff::floatData(&wavData[0], &trueValsFloat[0], wavData.size());
-            //Makes time for plotting/calculations
-
-            for (int i = 0; i < wavData.size(); i++) {
-                wavTime[i] = (float)(i)/(float)sampleRate;
-            }
         }
 
         if (flagRecalculateSola) {
@@ -795,20 +786,6 @@ int main(int, char**)
 
         //moved from previous button, so multiple things can access it.
 
-        
-        if (updateFourier) {
-            //int fourierWindowSize = wav.getSampleNum_ms(20);
-
-            //applyFourierWindowed2(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
-
-            cout << 1.0 / 1000.0 * wav.getSampleRate() << "\n";
-
-            applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0/windows[currentBuffer].waveFreq*wav.getSampleRate(), windows[currentBuffer].fourierSize);
-
-            updateFourier = false;
-            windows[currentBuffer].showFourier = true;
-        }
-
         //Updating display values of the buffer
 
         for (int j = 0; j < windows.size(); j++) {
@@ -836,7 +813,7 @@ int main(int, char**)
 
         glfwSwapBuffers(window);
     }
-    // Cleanup
+    // Cleanup for rendering on exit
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();

@@ -39,8 +39,6 @@ public:
     int getAverage();
     std::vector<std::int16_t> dataToVector();
     bool writeBuffer(std::vector<int16_t>&vectorIn);
-    //std::vector<float> dataToVector20MS(int skip, int offset);
-    //std::vector<float> timeToVector20MS(int skip, int offset);
 
     int getSampleNum();
     int32_t getSampleRate();
@@ -51,7 +49,6 @@ public:
     int getSampleNum_ms(int ms);
 };
 namespace vectorStuff {
-    std::vector<std::int16_t> shrinkData(std::vector<std::int16_t> vectorIn, int maxSize);
     void floatData(int16_t* start,float* fstart, int length);
     std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim);
     std::vector<float> resampleFloat(std::vector<float> vectorIn, int sizeAim);
