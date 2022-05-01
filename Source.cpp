@@ -163,6 +163,8 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     
     unsigned int previousValues[5] = {waveSize,waveSize,waveSize,waveSize,waveSize};
 
+    std::vector<std::pair<unsigned int, bool>> dataCounters = {}; //Used to contain datacounters, and whether or not the total at the point was even or odd. Necessary for centring fourier transform.
+
     //Write to file for debug
     std::ofstream fileOut;
     fileOut.open("debug.txt");
@@ -188,7 +190,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
                 //If so, there is an unsampled crossing point marking a turning point in the waveform.
 
                 dataCounter = checkPoint + i;
-                if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter+1]* (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter-1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
+                if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter + 1] * (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter - 1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
                 dataCounter = checkPoint - i;
                 if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter + 1] * (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter - 1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
             }
@@ -220,14 +222,19 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
         //Takes found series of waveforms under the buffer size, places in complex array. 0 pads rest.
 
-        int offsetToCentre = (windowSize - (dataCounter - previousFourierDataCounter) - 1)/2; //-1 needed due to final 0 to end waveform not being included in count otherwise.
+        int fourierSampleSize = (dataCounter - previousFourierDataCounter)+1;
+
+        int offsetToCentre = (windowSize - fourierSampleSize)/2; //-1 needed due to final 0 to end waveform not being included in count otherwise.
 
         fileOut << "Offset to centre: " << offsetToCentre << "\n";
         
         fileOut << "Window: " << numberOfWindows << "\n";
         for (int i = 0; i < windowSize;i++) {
-            if (i < (dataCounter - previousFourierDataCounter)) {
-                temp[i].real(dataIn[previousFourierDataCounter + i]);
+            if (i < offsetToCentre) {
+                temp[i].real(0);
+            }
+            else if (i - offsetToCentre  < fourierSampleSize) {
+                temp[i].real(dataIn[previousFourierDataCounter + (i - offsetToCentre)]);
             }
             else {
                 temp[i].real(0);
