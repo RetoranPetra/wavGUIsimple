@@ -182,16 +182,21 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
             for (int i = 0;; i++) {
                 //std::cout << "Seek " << i << "\n";
+
+                //In addition to checking if 0,
+                //which only works when a wave coincidentally is sampled at that exact moment, check if points to the left and right are of opposite signs.
+                //If so, there is an unsampled crossing point marking a turning point in the waveform.
+
                 dataCounter = checkPoint + i;
-                if (dataIn[dataCounter] == 0) { sampleOffBy = i; break; }
+                if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter+1]* (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter-1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
                 dataCounter = checkPoint - i;
-                if (dataIn[dataCounter] == 0) { sampleOffBy = i; break; }
+                if (dataIn[dataCounter] == 0 || ((int)dataIn[dataCounter + 1] * (int)dataIn[dataCounter]) < 0 || ((int)dataIn[dataCounter - 1] * (int)dataIn[dataCounter]) < 0) { sampleOffBy = i; break; }
             }
         
             //Found crossing point at datacounter, update number of waves passed.
             numberOfWaves++;
             //Need to readjust estimated wavesize.
-            int thisWaveSize = dataCounter - previousDataCounter; //Needs extra -1 to prevent initial 0 being counted.
+            int thisWaveSize = dataCounter - previousDataCounter;
             previousValues[numberOfWaves % 5] = thisWaveSize;
 
             //Recalculating running average
@@ -206,7 +211,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
             //Ignore wavesum stuff, just make it same.
             //waveSize = startingWaveSize;
 
-            previousDataCounter = dataCounter-1; //Updates previousdata counter to current before next loop, needs to be negative one to prevent 0s from not being repeated. When not repeated, transform starts with non-zero causing lobes
+            previousDataCounter = dataCounter; //Updates previousdata counter to current before next loop, needs to be negative one to prevent 0s from not being repeated. When not repeated, transform starts with non-zero causing lobes
             std::cout << "WaveSize" << thisWaveSize << "Avg " << waveSize << "Deviation" << sampleOffBy << "\n";
         }
         //Creates temporary CArray to perform the fourier transform upon.
@@ -237,6 +242,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
         }
         //Increment number of windows for magnitude average calculation
         numberOfWindows++;
+        //Update Fourier counter, so know where to start off from for next loop
         previousFourierDataCounter = dataCounter;
     }
 
