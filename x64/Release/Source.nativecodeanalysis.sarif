@@ -1,0 +1,389 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 101,
+                  "startColumn": 28,
+                  "endLine": 101,
+                  "endColumn": 32
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourier@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1H@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 124,
+                  "startColumn": 37,
+                  "endLine": 124,
+                  "endColumn": 53
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowedSimple@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 145,
+                  "startColumn": 28,
+                  "endLine": 145,
+                  "endColumn": 32
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowedSimple@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 173,
+                  "startColumn": 13,
+                  "endLine": 173,
+                  "endColumn": 42
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowed@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HHH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 193,
+                  "startColumn": 62,
+                  "endLine": 193,
+                  "endColumn": 76
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowed@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HHH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 195,
+                  "startColumn": 62,
+                  "endLine": 195,
+                  "endColumn": 76
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowed@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HHH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 243,
+                  "startColumn": 37,
+                  "endLine": 243,
+                  "endColumn": 71
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowed@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HHH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 278,
+                  "startColumn": 28,
+                  "endLine": 278,
+                  "endColumn": 32
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "?applyFourierWindowed@@YAXV?$vector@FV?$allocator@F@std@@@std@@AEAV?$vector@MV?$allocator@M@std@@@2@1HHH@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+                },
+                "region": {
+                  "startLine": 665,
+                  "startColumn": 96,
+                  "endLine": 665,
+                  "endColumn": 116
+                }
+              },
+              "logicalLocations": [
+                {
+                  "decoratedName": "main",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.29.30136.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "commandLine": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX86\\x64\\c1xx.dll\" -ACf{1F7B090C-16DB-4822-966A-A93D26ED4681} -ACpmspft140.dll -Alint -D_PREFAST_ -D_AST_FE_ -Analyze -zm0x00FEC1B0 -il C:\\Users\\flyro\\AppData\\Local\\Temp\\_CL_182ee010ast -typedil -f Source.cpp -Ze -D_MSC_EXTENSIONS -Zp16 -pc \\:/ -D_MSC_VER=1929 -D_MSC_FULL_VER=192930136 -D_MSC_BUILD=0 -D_M_AMD64=100 -ZILP448 -D_M_X64=100 -D_WIN64 -D_WIN32 -GR -D_CPPRTTI -I D:\\Flyro\\Documents\\GitHub\\vcpkg\\installed\\x64-windows\\include -nologo -W 3 -diagnostics:column -D_GUARDOVERFLOW_CRT_ALLOCATORS=1 -GF -Og -Ot -Oy -Oi -ltcg -DCODE_ANALYSIS -DNDEBUG -D_CONSOLE -D_UNICODE -DUNICODE -EHs -D_CPPUNWIND -EHc -MD -D_MT -D_DLL -GS -D_M_FP_PRECISE -permissive- -Zc:wchar_t -Zc:forScope -std:c++20 -Fox64\\Release\\Source.obj -Fdx64\\Release\\vc142.pdb -external:W 3 -Gd -analyze:projectdirectory C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple -analyze:rulesetdirectory ;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Team Tools\\Static Analysis Tools\\\\Rule Sets; -analyze:ruleset C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Team Tools\\Static Analysis Tools\\Rule Sets\\NativeRecommendedRules.ruleset -analyze:quiet -analyze:plugin C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX86\\x86\\EspXEngine.dll -FC -errorreport:prompt -I C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\include -I C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\atlmfc\\include -I C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\VS\\include -I C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\ucrt -I C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\um -I C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\shared -I C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\winrt -I C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\cppwinrt -I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\Include\\um -I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\%(ExternalIncludePath) -I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\include -external:I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\%(ExternalIncludePath) -I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\%(ExternalIncludePath) -external:I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\include -I C:\\Users\\flyro\\source\\repos\\wavGUIsimple\\wavGUIsimple\\include",
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/wavReader.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "md5": "52fdeb6a701afc6f354ec31224b50151"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/flyro/source/repos/wavguisimple/wavguisimple/wavreader.h"
+          },
+          "hashes": {
+            "md5": "8b495e08f840501e37eecfd7b82f2e40"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///C:/Users/flyro/source/repos/wavGUIsimple/wavGUIsimple/Source.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "md5": "cae0b1098ed66b663ba1154615d5c2c8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/flyro/source/repos/wavguisimple/wavguisimple/fft.h"
+          },
+          "hashes": {
+            "md5": "7307a4089f04382fe4e2131b84b41fc7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/flyro/source/repos/wavguisimple/wavguisimple/sola.h"
+          },
+          "hashes": {
+            "md5": "a9f570428fdd7cff63ce79212976d4cd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imgui.h"
+          },
+          "hashes": {
+            "md5": "9174a52257c3c8d0df1b1bf2000ea617"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imconfig.h"
+          },
+          "hashes": {
+            "md5": "1f8f757615416f541010da4d739008d2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imgui_impl_glfw.h"
+          },
+          "hashes": {
+            "md5": "e3f50927f40a4d8e1f24e1bc0a09fd3f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imgui_impl_opengl3.h"
+          },
+          "hashes": {
+            "md5": "eb08b094c2b332df9093033bad952ff7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/glfw/glfw3.h"
+          },
+          "hashes": {
+            "md5": "3bd6b8c8a50a4064c4f8704c206032d6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/flyro/source/repos/wavguisimple/wavguisimple/l2dfiledialog.h"
+          },
+          "hashes": {
+            "md5": "fe6ff275c7177a48d363686c514c8978"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imgui_internal.h"
+          },
+          "hashes": {
+            "md5": "661ec164ef4186b8c61798ab0ea0c2bf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/imstb_textedit.h"
+          },
+          "hashes": {
+            "md5": "1310a7c1c1617ac4995b1e90e3b1a32c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/flyro/documents/github/vcpkg/installed/x64-windows/include/implot.h"
+          },
+          "hashes": {
+            "md5": "e2a43b9dc38ce3ba83d62eba17a8f6d4"
+          }
+        }
+      ]
+    }
+  ]
+}

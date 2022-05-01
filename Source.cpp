@@ -354,8 +354,6 @@ int main(int, char**)
 
     bool plotWindowSOLA = false;
 
-    bool plotFreq = false;
-
     bool dataWindowTable = false;
 
     bool solaAdjustWindow = true;
@@ -363,7 +361,6 @@ int main(int, char**)
 
     int scale = 1;
     float solaTimeScale = 0.5;
-    float oldSolaTimeScale = 0.0;
 
     float resampleTimeScale = 2.0;
     float frequencyScale = 1.1;
@@ -406,8 +403,9 @@ int main(int, char**)
         vector<float> magDisplay;
         vector<float> freqDisplay;
 
+        //Now contains own wav
+        //wavReader wav;
 
-        //need a way to prevent problems with databuffer changing from window to window, each window should have its own databuffer logically.
 
 
         //Flags
@@ -420,6 +418,7 @@ int main(int, char**)
         //Fourier flags
         bool showFourier = false;
 
+        //Fourier information
         int fourierSize = 1024;
         int fourierSizePower = 10;
         float waveFreq = 1000;
@@ -446,7 +445,6 @@ int main(int, char**)
 
     //Pointers for controlling 20ms sample location
     int sampleOffset20ms = 0;
-    int sampleNum20ms = 0;
 
     //Stores samplerate so doesn't have to be called multiple times
     int sampleRate = 0;
@@ -614,31 +612,6 @@ int main(int, char**)
             }
             ImGui::End();
         }
-        /*
-        if (plotWindow20ms) {
-            ImGui::Begin("Plotting Window 20ms Samples");
-            if (offsetUpdated) { ImPlot::FitNextPlotAxes(); offsetUpdated = false; }//recentres plot
-            if (ImPlot::BeginPlot(("Plot of " + wav.getFileName() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
-                ImPlot::PlotLine(wav.getFileName().c_str(), &wavTime[sampleNum20ms * sampleOffset20ms], &trueValsFloat[sampleNum20ms * sampleOffset20ms], sampleNum20ms);
-                ImPlot::EndPlot();
-            }
-
-            if (ImGui::InputInt("20ms sampleNumber", &sampleOffset20ms, 1, 100)) {
-                offsetUpdated = true;
-                updateFourier = true;
-                offsetUpdatedSola = true;
-                int max = wav.getChannelLength() / sampleNum20ms;
-                if (sampleOffset20ms > max - 1) {
-                    sampleOffset20ms = max - 1;
-                }
-                else if (sampleOffset20ms < 0) {
-                    sampleOffset20ms = 0;
-                }
-            }
-
-            ImGui::End();
-        }
-        */
         {
             std::stringstream ss;
             for (int i = 0; i < windows.size(); i++) {
@@ -758,25 +731,6 @@ int main(int, char**)
                 }
             }
         }
-        
-        /*
-        if (plotFreq) {
-            ImGui::Begin("Plotting Window Freq");
-            if (offsetUpdatedFreq) { ImPlot::FitNextPlotAxes(); offsetUpdatedFreq= false; }//recentres plot
-            if (ImPlot::BeginPlot(
-                ("Plot of " + wav.getFileName()+"'s frequencies").c_str(), 
-                "Freq (Hz)", 
-                "Magnitude"
-                , ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_LogScale, ImPlotAxisFlags_LogScale //Logscale doesn't work, no idea why.
-                )) {
-                //Converts float to new array as data is stored continguously in vectors, same as arrays.
-                //cout << "Size of 20ms is: " << size << "\n";
-                ImPlot::PlotLine(wav.getFileName().c_str(), &fftXVals[0], &fftYVals[0], sampleNum20ms/2);//divided by two to only show positive freq values
-                ImPlot::EndPlot();
-            }
-            ImGui::End();
-        }
-        */
         //===========
         //Loop Checks
         //===========
@@ -792,13 +746,11 @@ int main(int, char**)
         //Checks if file selection buffer has anything in it, if it does, opens up the wav.
         if (!(*fileSelectionBuffer == NULL)) {
             //Destroys plot windows to prevent problems
-            plotFreq = false;
 
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
             wav.openSpecific(buffer);
             cout << buffer << " has been auto-opened\n";
             fileSelectionBuffer = new char[fileBuffer]();
-            sampleNum20ms = wav.getSampleNum_ms(20);
             wavData = wav.dataToVector();
             sampleRate = wav.getSampleRate();
 
@@ -821,7 +773,6 @@ int main(int, char**)
             windows[currentBuffer].dataUpdated = true;
             flagRecalculateSola = false;
             flagSola = true;
-            oldSolaTimeScale = solaTimeScale;
         }
 
         if (flagFreqShift) {
@@ -853,8 +804,6 @@ int main(int, char**)
             cout << 1.0 / 1000.0 * wav.getSampleRate() << "\n";
 
             applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0/windows[currentBuffer].waveFreq*wav.getSampleRate(), windows[currentBuffer].fourierSize);
-
-            
 
             updateFourier = false;
             windows[currentBuffer].showFourier = true;
