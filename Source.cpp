@@ -425,44 +425,6 @@ int main(int, char**)
 
     int currentBuffer = 0;
 
-
-    //Stores values used in display of sola data
-    vector<float> dSolaBuffer;
-    vector<float> dSolaTime;
-
-
-    //Buffers for fourier values for original 20ms
-    FFT::CArray fourierBuffer;
-    vector<double> fftYVals; //if not initialised to nullptr, program wont compile as pointer points to literally nothing, not even the nullptr
-    vector<double> fftXVals;
-
-    //Buffers for fourier values for the SOLA'd 20ms
-    vector<double> fftYVals2;//Used for fft of sola algorithm'd portion
-    vector<double> fftXVals2;
-
-    //Pointers for controlling 20ms sample location
-    int sampleOffset20ms = 0;
-
-    //Stores samplerate so doesn't have to be called multiple times
-    int sampleRate = 0;
-
-    //Bools that store state of whether windows have been updated, and therefore need recentering again.
-    bool offsetUpdated = false;
-    bool offsetUpdatedFreq = false;
-    bool offsetUpdatedSola = false;
-    bool offsetUpdatedFreqSola = false;
-
-    //Bool that makes the fourier values update
-    bool updateFourier = false;
-
-    //Bool that tracks whether SOLA has been called
-    bool flagSola = false;
-    bool flagRecalculateSola = false;
-    bool flag20msSola = false;
-
-    //Flags for frequency shift
-    bool flagFreqShift = false;
-
     windows.push_back(dataWindow());
 
     //Start of code that matters
@@ -547,24 +509,17 @@ int main(int, char**)
                 windows[currentBuffer].dataBuffer = wavData;
                 windows[currentBuffer].dataUpdated = true;
             }
-            /*
-            if (ImGui::Button("Plot wav in 20ms") && wav.is_open()) {
-                sampleOffset20ms = 0;
-                plotWindow20ms = true;
-            }
-            */
+
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
                 if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
             }
-            /*
-            if (ImGui::Button("Create FFT of 20ms") && plotWindow20ms) {
-                updateFourier = true;
-            }
-            */
+
             if (ImGui::Button("Apply Sola to Buffer")) {
-                flagRecalculateSola = true;
+                applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                //Flag Reseting
+                windows[currentBuffer].dataUpdated = true;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -587,7 +542,19 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Frequency Shift by factor")) {
-                flagFreqShift = true;
+                if (frequencyScale > 1.0) {
+
+                    applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                    //Resample
+                    windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
+                }
+                else if (frequencyScale < 1.0) {
+                    //Resample
+                    windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
+                    //Sola
+                    applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                }
+                windows[currentBuffer].dataUpdated = true;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -755,32 +722,6 @@ int main(int, char**)
             cout << buffer << " has been auto-opened\n";
             fileSelectionBuffer = new char[fileBuffer]();
             wavData = wav.dataToVector();
-            sampleRate = wav.getSampleRate();
-        }
-
-        if (flagRecalculateSola) {
-            applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
-            //Flag Reseting
-            windows[currentBuffer].dataUpdated = true;
-            flagRecalculateSola = false;
-            flagSola = true;
-        }
-
-        if (flagFreqShift) {
-            if (frequencyScale > 1.0) {
-
-                applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
-                //Resample
-                windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
-            }
-            else if (frequencyScale < 1.0) {
-                //Resample
-                windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
-                //Sola
-                applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
-            }
-            windows[currentBuffer].dataUpdated = true;
-            flagFreqShift = false;
         }
 
 
