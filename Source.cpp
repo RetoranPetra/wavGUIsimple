@@ -172,6 +172,8 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
     while ((previousFourierDataCounter + windowSize) < dataIn.size()) {//When more windows added would overshoot data size, stop loop.
         while (((dataCounter+waveSize) - previousFourierDataCounter) < windowSize) {//When more waves discovered would overshoot windowsize, stop loop.
+
+            //Take guess at where next crossing point will be
             dataCounter = dataCounter + waveSize;
 
 
@@ -182,6 +184,8 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
             //Debug stuff
             int sampleOffBy = 0;
 
+
+            //Searches for crossing point marking end of waveform
             for (int i = 0;; i++) {
                 //std::cout << "Seek " << i << "\n";
 
@@ -228,9 +232,9 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
         //Takes found series of waveforms under the buffer size, places in complex array. 0 pads rest.
 
-        int fourierSampleSize = (dataCounter - previousFourierDataCounter)+1;
+        int fourierSampleSize = (dataCounter - previousFourierDataCounter)+1; //+1 to sample size for overlapping 0 between waveforms.
 
-        int offsetToCentre = (windowSize - fourierSampleSize)/2; //-1 needed due to final 0 to end waveform not being included in count otherwise.
+        int offsetToCentre = (windowSize - fourierSampleSize)/2;
 
         fileOut << "Offset to centre: " << offsetToCentre << "\n";
         
@@ -424,6 +428,7 @@ int main(int, char**)
     vector<dataWindow> windows;
 
     int currentBuffer = 0;
+    int secondaryBufferSelector = 0;
 
     windows.push_back(dataWindow());
 
@@ -470,14 +475,30 @@ int main(int, char**)
             ImGui::Text(ss.str().c_str());
             ss.str(std::string());
 
-            ss << "Current Selected Buffer: " << currentBuffer;
+            ss << "Primary Buffer: " << currentBuffer;
             ImGui::Text(ss.str().c_str());
             ss.str(std::string());
+
+            ss << "Secondary Buffer: " << secondaryBufferSelector;
+            ImGui::Text(ss.str().c_str());
+            ss.str(std::string());
+
+            if (ImGui::Button("Copy Primary to Secondary")) {
+                windows[secondaryBufferSelector] = windows[currentBuffer]; //Copies selected
+            }
+
+            if (ImGui::Button("Delete primary buffer")) {
+                windows.erase(windows.begin()+currentBuffer); //Erases selected
+            }
 
             for (int i = 0; i < windows.size(); i++) {
                 ss << "Buffer " << i;
                 if (ImGui::Button(ss.str().c_str())) {
                     currentBuffer = i;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(("_"+ ss.str()).c_str())) {
+                    secondaryBufferSelector = i;
                 }
                 ss.str(std::string());
             }
@@ -622,13 +643,13 @@ int main(int, char**)
 
 
                     if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
-                        applyFourierWindowed(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), 1.0 / windows[currentBuffer].waveFreq * wav.getSampleRate(), windows[currentBuffer].fourierSize);
-                        windows[currentBuffer].showFourier = true;
+                        applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
+                        windows[i].showFourier = true;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Fourier")) {
-                        applyFourierWindowedSimple(windows[currentBuffer].dataBuffer, windows[currentBuffer].fourierMag, windows[currentBuffer].fourierFreq, wav.getSampleRate(), windows[currentBuffer].fourierSize);
-                        windows[currentBuffer].showFourier = true;
+                        applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
+                        windows[i].showFourier = true;
                     }
                     ss.str(std::string());
 
