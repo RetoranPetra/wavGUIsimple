@@ -165,8 +165,6 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     
     unsigned int previousValues[5] = {waveSize,waveSize,waveSize,waveSize,waveSize};
 
-    std::vector<std::pair<unsigned int, bool>> dataCounters = {}; //Used to contain datacounters, and whether or not the total at the point was even or odd. Necessary for centring fourier transform.
-
     //Write to file for debug
     std::ofstream fileOut;
     fileOut.open("debug.txt");
@@ -254,7 +252,6 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
             fileOut << temp[i] << "\n";
         }
 
-        
 
         //Applies fourier transform to buffer
         FFT::fft(temp);
@@ -383,11 +380,6 @@ int main(int, char**)
     //Stores wavdata
     vector<int16_t> wavData;
 
-    //Stores values directly gotten from applying sola to the data
-    vector<float> solaBuffer;
-    vector<int16_t> rawSolaBuffer;
-    vector<float> solaTime;
-
 
     //Databuffer system saved
     struct dataWindow{
@@ -425,6 +417,7 @@ int main(int, char**)
         int fourierSize = 1024;
         int fourierSizePower = 10;
         float waveFreq = 1000;
+        int measuredFundamental = 0;
     };
     
     vector<dataWindow> windows;
@@ -647,11 +640,35 @@ int main(int, char**)
                     if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
                         applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
                         windows[i].showFourier = true;
+
+                        //Find fundamental freq
+                        int highestIndex = 0;
+                        float highest = 0.0f;
+                        for (int j = 0; j < windows[i].fourierMag.size()/2; j++) {
+                            if (highest < windows[i].fourierMag[j]) {
+                                highest = windows[i].fourierMag[j];
+                                highestIndex = j;
+                            }
+                        }
+                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
+                        windows[i].waveFreq = windows[i].measuredFundamental;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Fourier")) {
                         applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
                         windows[i].showFourier = true;
+
+                        //Find fundamental freq
+                        int highestIndex = 0;
+                        float highest = 0.0f;
+                        for (int j = 0; j < windows[i].fourierMag.size() / 2; j++) {
+                            if (highest < windows[i].fourierMag[j]) {
+                                highest = windows[i].fourierMag[j];
+                                highestIndex = j;
+                            }
+                        }
+                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
+                        windows[i].waveFreq = windows[i].measuredFundamental;
                     }
                     ss.str(std::string());
 
@@ -694,9 +711,7 @@ int main(int, char**)
                         }
                     }
                     ss.str(std::string());
-
-                    ss << "Total Harmonic Distortion" << vectorStuff::totalHarmonicDistortion(windows[i].fourierMag);
-
+                    ss << "Total Harmonic Distortion " << vectorStuff::totalHarmonicDistortion(windows[i].fourierMag) << "\nMeasured fundamental frequency: " << windows[i].measuredFundamental;
                     ImGui::Text(ss.str().c_str());
                     ss.str(std::string());
                     ImGui::SameLine();
