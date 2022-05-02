@@ -12,8 +12,8 @@ void SOLA::overlap(int16_t* output, int16_t* previous, int16_t* current) {
 int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 	//Uses cross-correlation to find the optimal location for next segment, least difference between segments in overlap
 	int optOffset = 0;							//Stores value of optimal offset
-	float optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0, so doesn't get stuck on 0 and break loop in beginning.
-	float* temp = new float[overlapSize] {};	//Initialises new array to store values of previous slope vals
+	double optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0, so doesn't get stuck on 0 and break loop in beginning.
+	double* temp = new double[overlapSize] {};	//Initialises new array to store values of previous slope vals
 
 	//Calculates what overlap would be from the first segment, same no matter what second segment is, just combines when mixed at end.
 	for (int i = 0; i < overlapSize; i++) {
@@ -21,12 +21,12 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 	}
 
 	//Finds segment that matches best with precalculated first segment overlap values.
-	for (int i = 0; i < seekWindow; i++) {
-		float thisCorrelation = 0;
+	for (int i = 0; i < -seekWindow; i--) {
+		double thisCorrelation = 0;
 
 		for (int j = 0; j < overlapSize; j++) {
 			//Makes sum of correlation of all points between 
-			thisCorrelation += ((float)current[i + j] * temp[j])/sqrt((float)current[i + j] * temp[j] * (float)current[i + j] * temp[j]);
+			thisCorrelation += ((double)current[i + j] * temp[j])/sqrt((double)current[i + j] * temp[j] * (double)current[i + j] * temp[j]); //Normalised correlation, better than correlation
 		}
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
@@ -37,7 +37,7 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 	}
 	//Deallocates memory, returns offset
 	delete[] temp;
-	return optOffset;
+	return optOffset; //negative offset, not positive
 }
 
 void SOLA::sola() {
