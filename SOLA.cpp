@@ -26,7 +26,7 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 
 		for (int j = 0; j < overlapSize; j++) {
 			//Makes sum of correlation of all points between 
-			thisCorrelation += (float)current[i + j] * temp[j];
+			thisCorrelation += ((float)current[i + j] * temp[j])/sqrt((float)current[i + j] * temp[j] * (float)current[i + j] * temp[j]);
 		}
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
@@ -82,6 +82,7 @@ void SOLA::sola() {
 
 		//Update counters to match new values
 		numSamplesOut += sequenceSize - overlapSize;
+		//Processed this amount from input, now do output.
 		numSamplesIn -= processDistance;
 	}
 
@@ -96,6 +97,6 @@ SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekW
 	
 
 
-	flatDuration = (sequenceSize - 2 * overlapSize);
+	flatDuration = (sequenceSize - (2 * overlapSize));
 	processDistance = (int)((sequenceSize - overlapSize) * timeScale);
 }

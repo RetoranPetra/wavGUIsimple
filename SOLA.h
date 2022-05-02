@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <math.h>
 class SOLA {
 private:
 	//Variables that define how the SOLA works
