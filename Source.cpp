@@ -23,6 +23,10 @@
 #include <Windows.h>
 #include <thread>
 
+//Fourier transform
+#include <fftw3.h>
+
+
 #define GUI
 #define fileBuffer 100
 

@@ -256,16 +256,16 @@ namespace vectorStuff {
         int highestIndex = 0;
         double sum = 0;
         for (int i = 0; i < vectorIn.size()/2; i++) {
-            double current = (double)vectorIn[i] * (double)vectorIn[i];
+            double current = (double)vectorIn[i];
             if (current > highest) {
                 highest = current;
                 highestIndex = i;
             }
-            sum += current;
+            else { sum += current * current; }
         }
         sum -= highest; //Remove highest from summation
 
-        return sum/highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
+        return sqrt(sum) / highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
     }
 
 

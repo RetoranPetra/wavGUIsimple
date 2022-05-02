@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <math.h>
 class wavReader {
 private:
     std::string fileName;

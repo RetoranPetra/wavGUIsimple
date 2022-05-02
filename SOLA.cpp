@@ -85,7 +85,13 @@ void SOLA::sola() {
 		//Processed this amount from input, now do output.
 		numSamplesIn -= processDistance;
 	}
+	//output.resize((int)(l_input - &input[0]) - output.size());
 
+	//std::cout << "Hello world!";
+
+	std::cout << "Difference in addresses" << (long unsigned int)(l_input - &input[0]) << "\n";
+
+	output.resize((int)(l_input - &input[0]));
 }
 
 SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
