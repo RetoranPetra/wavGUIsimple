@@ -80,6 +80,7 @@ bool wavReader::openSpecific(string FileAddress) {
         //Extracting basic variables from wav
         intReader = reinterpret_cast<int16_t*>(buffer);
         channels = intReader[11];
+
         sampleRate = *reinterpret_cast<int32_t*>(&intReader[12]);
         sampleBits = intReader[17];
         intReader = &intReader[22];//Sets position to start of data

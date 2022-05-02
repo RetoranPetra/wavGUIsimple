@@ -533,7 +533,7 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Apply Sola to Buffer")) {
-                applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                applySola(solaTimeScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
                 //Flag Reseting
                 windows[currentBuffer].dataUpdated = true;
             }
@@ -756,10 +756,24 @@ int main(int, char**)
             //Destroys plot windows to prevent problems
 
             std::string buffer = charNullEnderToString(fileSelectionBuffer, fileBuffer);
-            wav.openSpecific(buffer);
-            cout << buffer << " has been auto-opened\n";
+            if (wav.openSpecific(buffer)) {
+                cout << buffer << " has been auto-opened\n";
+                if (wav.getChannels() > 1) {
+                    cout << "Too many channels!\n";
+                    //Resets wav in roundabout way to avoid having to code more.
+                    wav.~wav();
+                    new (&wav) wavReader();
+                }
+                else {
+                    wavData = wav.dataToVector();
+                }
+            }
+            else {
+                //Resets wav in roundabout way to avoid having to code more.
+                wav.~wav();
+                new (&wav) wavReader();
+            }
             fileSelectionBuffer = new char[fileBuffer]();
-            wavData = wav.dataToVector();
         }
 
 
