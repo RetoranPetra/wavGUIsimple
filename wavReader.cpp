@@ -240,8 +240,8 @@ namespace vectorStuff {
         for (int i = 0; i < sizeAim; i++) {
             sum += ratio;
             //cout << "sum: " << sum << "\n";
-            int temp = (int)sum;
-            vectorOut[i] = (float)((double)(vectorIn[temp + 1] - vectorIn[temp]) * (sum - (double)temp)) + vectorIn[temp];
+            int temp = (int)sum;//temp is now the floating point sum without the values after the decimal
+            vectorOut[i] = (float)((double)(vectorIn[temp + 1] - vectorIn[temp]) * (sum - (double)temp)) + vectorIn[temp]; //(sum - (double)temp)) = the fraction component of the number
         }
         cout << "Finished loop without crash\n";
         return vectorOut;

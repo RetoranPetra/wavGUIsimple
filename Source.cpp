@@ -65,7 +65,7 @@ void playOut() {
 
 //Wrappers for class functions
 void applySola(float freqScale, int processingSamples, int overlapSamples, int overlapSeekSamples, vector<int16_t> sampleIn, vector<int16_t> &sampleOut) { //Input in number of samples for sizes
-    int size = (int)(sampleIn.size() * freqScale); //1.1f than it needs to be to account for errors in algorithm
+    int size = (int)(sampleIn.size() * freqScale);
 
     vector<int16_t> temp;
     temp.resize(size);

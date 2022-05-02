@@ -10,23 +10,22 @@ void SOLA::overlap(int16_t* output, int16_t* previous, int16_t* current) {
 }
 
 int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
-	//Uses cross-correlation to find the optimal overlapping offset within the window, least differences between signals.
+	//Uses cross-correlation to find the optimal location for next segment, least difference between segments in overlap
 	int optOffset = 0;							//Stores value of optimal offset
-	float optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0
+	float optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0, so doesn't get stuck on 0 and break loop in beginning.
 	float* temp = new float[overlapSize] {};	//Initialises new array to store values of previous slope vals
 
-	//Creates new values of slope only for previous vals
+	//Calculates what overlap would be from the first segment, same no matter what second segment is, just combines when mixed at end.
 	for (int i = 0; i < overlapSize; i++) {
 		temp[i] = previous[i] * i * (overlapSize - i);
 	}
 
-	//find optimal overlap offset within window
-	//iterates through possible places for overlap
+	//Finds segment that matches best with precalculated first segment overlap values.
 	for (int i = 0; i < seekWindow; i++) {
 		float thisCorrelation = 0;
 
 		for (int j = 0; j < overlapSize; j++) {
-			//makes value for comparison, greater values show greater correlation
+			//Makes sum of correlation of all points between 
 			thisCorrelation += (float)current[i + j] * temp[j];
 		}
 		if (thisCorrelation > optCorrelation) {
@@ -42,40 +41,44 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 }
 
 void SOLA::sola() {
+
+	//use local versions of variables so same SOLA object can be reused, otherwise would need to create new object for every SOLA operation.
 	int numSamplesOut = 0;
 	int16_t* seq_offset = &input[0];
-	int16_t* prev_offset = nullptr;
+	int16_t* prev_offset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
 	int16_t* l_input = &input[0];
 	int16_t* l_output = &output[0];
 
 	//Reduces over time, basically counts things left in input
-	int numSamplesIn = inputLength-1;
+	int numSamplesIn = inputLength-1; //Needs to be -1 to count 0
 
-	//Main loop, does SOLA stuff.
+	//Main Loop, works through sample to apply SOLA.
 	while (numSamplesIn > processDistance+seekWindow) {
 		//Copies flat to output vector
+
+		//Using memcpy for maximum performance
 		memcpy(l_output, seq_offset, flatDuration * sizeof(int16_t)); //Need to use sizeof due to this being a legacy C function, doesn't do it automatically
 
 		//Sets previous to end of current flat segment
 		prev_offset = seq_offset + flatDuration;
 
-		//input pointer update to new location of processing sequence
-		l_input += processDistance;
-		l_input += -overlapSize;
+		//input pointer update to new location to seek the next sequence
+		l_input += processDistance - overlapSize;
 
 		//Updates sequence offset to the optimal place using seekOverlap
-		seq_offset = l_input + seekOverlap(prev_offset, l_input);
+		seq_offset = l_input + seekOverlap(prev_offset, l_input); //Seekoverlap just gives offset as number, need to add to current reader in input for location of sequence offset
 
 		//Calls overlap to overlap new and previous sample
-		overlap(l_output + flatDuration, prev_offset, seq_offset);
+		overlap(l_output + flatDuration, //+flatDuration so inputs data at end of last flat in output
+			prev_offset,
+			seq_offset);
 
-		//Update pointers by the total overlap value
+		//Add overlap to pointers now that overlap has been added
 		seq_offset += overlapSize;
 		l_input += overlapSize;
 
-		//Output pointer needs to be different, due to initial memcpy
-		l_output += sequenceSize;
-		l_output += -overlapSize;
+		//Update position in output to new location, 
+		l_output += sequenceSize - overlapSize;
 
 		//Update counters to match new values
 		numSamplesOut += sequenceSize - overlapSize;
