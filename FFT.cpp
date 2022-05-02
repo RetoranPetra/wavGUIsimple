@@ -1,6 +1,7 @@
 #include "FFT.h"
 namespace FFT {
     //FFT stuff sourced from https://tfetimes.com/c-fast-fourier-transform/
+    // Editted to fit in class structure. 
     // Cooley–Tukey FFT (in-place)
     void fft(CArray& x)
     {

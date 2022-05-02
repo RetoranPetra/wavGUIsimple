@@ -63,6 +63,7 @@ void playOut() {
     fp.close();
 }
 
+//Wrappers for class functions
 void applySola(float freqScale, int processingSamples, int overlapSamples, int overlapSeekSamples, vector<int16_t> sampleIn, vector<int16_t> &sampleOut) { //Input in number of samples for sizes
     int size = (int)(sampleIn.size() * freqScale); //1.1f than it needs to be to account for errors in algorithm
 
@@ -81,6 +82,7 @@ void applySola(float freqScale, int processingSamples, int overlapSamples, int o
     sampleOut = temp;
 }
 
+//Rectangular window fourier transform
 void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate) {
     FFT::CArray temp;
     temp.resize(dataIn.size());

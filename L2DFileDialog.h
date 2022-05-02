@@ -14,6 +14,8 @@
    	limitations under the License.
 */
 
+//Editted by Caleb Evans, 20/04/2022, was missing some key functionality I needed.
+
 #pragma once
 
 

@@ -103,7 +103,8 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
         //std::copy(buffer, &buffer[fileLengthBytes], fileLengthBytes);
         memcpy(outBuffer, buffer, fileLengthBytes);
         //cout << "Vectorin Size: " << vectorIn.size() << "\n";
-        //copys over values from vectorin, needs to seperate into 8 byte chunks.
+        //copys over values from vectorin, needs to seperate into 8 byte chunks to be used in the char input.
+        //Cheating by not doing the header properly and instead copying it from read file. Means file can only be same length always.
         for (int i = 0; i < fileLengthBytes/2-44; i++) {
             int16_t copy;
             int8_t top;
@@ -115,12 +116,14 @@ bool wavReader::writeBuffer(std::vector<int16_t>& vectorIn) {
             outBuffer[44 + i * 2] = *reinterpret_cast<char*>(&bottom);
             outBuffer[45 + i * 2] = *reinterpret_cast<char*>(&top);
         }
-        //Debug code for 
+
+        //Debug code
         /*
         for (int i = 3000; i < 3100; i++) {
             cout << *reinterpret_cast<int16_t*>(&outBuffer[44+i*2]) << " " << *reinterpret_cast<int16_t*>(&buffer[44+i * 2]) << " " << vectorIn[i] << "\n";
         }
         */
+
         cout << "Writing " << fileLengthBytes << " bytes...\n";
         fout.write(outBuffer, fileLengthBytes);
         fout.close();
