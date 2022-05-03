@@ -265,7 +265,11 @@ namespace vectorStuff {
         }
         sum -= highest; //Remove highest from summation
 
-        return sqrt(sum) / highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency. 
+        if (sum < 0) { //Sum can be negative due to floating point error with summation. Adding very small values may as well be adding 0s.
+            return -1.0; //Denotes infinite/immesurable THDf
+        }
+
+        return sqrt(sum) / highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency.
     }
 
 

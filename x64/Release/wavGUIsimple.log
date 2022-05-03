@@ -1,8 +1,11 @@
-﻿  SOLA.cpp
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(102,28): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+﻿  wavReader.cpp
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(31,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(67,36): warning C4244: '=': conversion from 'std::streamoff' to 'int', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(215,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\wavReader.cpp(272,26): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
   Generating code
-  97 of 1155 functions ( 8.4%) were compiled, the rest were copied from previous compilation.
+  2 of 1157 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    112 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe

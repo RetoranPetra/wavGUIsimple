@@ -286,6 +286,40 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     }
 }
 
+//Gave up on my way, used the community library. Works infinitely better.
+void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>& freq, int sampleRate) {
+
+    fftw_complex* in, * out;
+
+    int N = input.size();
+    magnitude.clear();
+    freq.clear();
+
+    magnitude.resize(N);
+    freq.resize(N);
+
+    fftw_plan p;
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
+    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
+
+    for (int i = 0; i < N; i++) {
+        in[i][0] = (double)input[i] / pow(2.0, 15.0);
+    }
+
+    p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+    fftw_execute(p);
+
+    fftw_destroy_plan(p);
+
+    for (int i = 0; i < N; i++) {
+        magnitude[i] = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+        freq[i] = (double)(i * sampleRate) / (double)N;
+    }
+
+    fftw_free(in); fftw_free(out);
+}
+
 
 int main(int, char**)
 {
@@ -674,6 +708,25 @@ int main(int, char**)
                         windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
                         windows[i].waveFreq = windows[i].measuredFundamental;
                     }
+                    ImGui::SameLine();
+                    if (ImGui::Button("FFTW3")) {
+                        fftwFourier(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate());
+                        windows[i].showFourier = true;
+
+                        //Find fundamental freq
+                        int highestIndex = 0;
+                        float highest = 0.0f;
+                        for (int j = 0; j < windows[i].fourierMag.size() / 2; j++) {
+                            if (highest < windows[i].fourierMag[j]) {
+                                highest = windows[i].fourierMag[j];
+                                highestIndex = j;
+                            }
+                        }
+                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
+                        windows[i].waveFreq = windows[i].measuredFundamental;
+                    }
+
+
                     ss.str(std::string());
 
                     ss << "Size " << windows[i].fourierSize;
