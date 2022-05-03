@@ -50,9 +50,9 @@ public:
     int getSampleNum_ms(int ms);
 };
 namespace vectorStuff {
-    void floatData(int16_t* start,float* fstart, int length);
-    std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim);
-    std::vector<float> resampleFloat(std::vector<float> vectorIn, int sizeAim);
+    void floatData(int16_t* start,float* fstart, long unsigned int length);
+    std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, long unsigned int sizeAim);
+    std::vector<float> resampleFloat(std::vector<float> vectorIn, long unsigned int sizeAim);
 
     float totalHarmonicDistortion(std::vector<float> vectorIn);
 };

@@ -837,11 +837,30 @@ int main(int, char**)
         for (int j = 0; j < windows.size(); j++) {
             if (windows[j].dataUpdated) {
                 vector<int16_t> temp = vectorStuff::resampleToSize(windows[j].dataBuffer, sampleLimit);
+                windows[j].dataDisplay.clear();
                 windows[j].dataDisplay.resize(temp.size());
+                
+
+                //Debugging
+
+                std::cout << "temp size" << temp.size() << "\n";
+
+                for (int i = 0; i < 5; i++) {
+                    std::cout << "From start " << i << " " << temp[i] << " " << windows[j].dataBuffer[i] << "\n";
+                }
+                for (int i = 0; i < 5; i++) {
+                    std::cout << "From end " << i << " " << temp[temp.size()-i] << " " << windows[j].dataBuffer[windows[j].dataBuffer.size()-i] << "\n";
+                }
+                //End of debug
+
                 vectorStuff::floatData(&temp[0], &windows[j].dataDisplay[0], temp.size());
+
+
+                windows[j].dataTimeDisplay.clear();
                 windows[j].dataTimeDisplay.resize(temp.size());
-                for (int i = 0; i < temp.size(); i++) {
-                    windows[j].dataTimeDisplay[i] = (float)i / wav.getSampleRate() * (float)windows[j].dataBuffer.size()/(float)windows[j].dataDisplay.size();//should probably store the sample rate of the buffer currently.
+                
+                for (long unsigned int i = 0; i < temp.size(); i++) {
+                    windows[j].dataTimeDisplay[i] = (float)i / (float)wav.getSampleRate() * (float)windows[j].dataBuffer.size()/(float)windows[j].dataDisplay.size();//should probably store the sample rate of the buffer currently.
                 }
                 windows[j].dataUpdated = false;
                 windows[j].showBuffer = true;

@@ -210,41 +210,39 @@ namespace vectorStuff {
 //#define average
 
 //Averaging version of function evens out outliers, at expense of computing time. Looks odd though and not representative of the wave, even if more accurate at a small scale.
-    void floatData(int16_t* start, float* fstart, int length) {
-        for (int i = 0; i < length; i++) {
+    void floatData(int16_t* start, float* fstart, long unsigned int length) {
+        for (long unsigned int i = 0; i < length; i++) {
             fstart[i] = (float)start[i] / pow(2, 15);
         }
     }
 
-    std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, int sizeAim) {
-        std::vector<std::int16_t> vectorOut(sizeAim);
+    std::vector<std::int16_t> resampleToSize(std::vector<std::int16_t> vectorIn, long unsigned int sizeAim) {
+        std::vector<std::int16_t> vectorOut(sizeAim,0);
         vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
         float ratio = (float)vectorIn.size() / (float)sizeAim;
         cout << "Ratio: " << ratio << "\n";
         double sum = 0.0;
-        for (int i = 0; i < sizeAim; i++) {
+        for (long unsigned int i = 0; i < sizeAim; i++) {
             sum += ratio;
             //cout << "sum: " << sum << "\n";
-            int temp = (int)sum;
-            vectorOut[i] = (int)((double)(vectorIn[temp+1]-vectorIn[temp])*(sum-(double)temp))+vectorIn[temp];
+            long unsigned int temp = (long unsigned int)sum;
+            vectorOut[i] = (int16_t)((double)(vectorIn[temp+1]-vectorIn[temp])*(sum-(double)temp)+(double)vectorIn[temp]);
         }
-        cout << "Finished loop without crash\n";
         return vectorOut;
     }
 
-    std::vector<float> resampleFloat(std::vector<float> vectorIn, int sizeAim) {
-        std::vector<float> vectorOut(sizeAim);
+    std::vector<float> resampleFloat(std::vector<float> vectorIn, long unsigned int sizeAim) {
+        std::vector<float> vectorOut(sizeAim,0.0f);
         vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
         float ratio = (float)vectorIn.size() / (float)sizeAim;
         cout << "Ratio: " << ratio << "\n";
         double sum = 0.0;
-        for (int i = 0; i < sizeAim; i++) {
+        for (long unsigned int i = 0; i < sizeAim; i++) {
             sum += ratio;
             //cout << "sum: " << sum << "\n";
-            int temp = (int)sum;//temp is now the floating point sum without the values after the decimal
-            vectorOut[i] = (float)((double)(vectorIn[temp + 1] - vectorIn[temp]) * (sum - (double)temp)) + vectorIn[temp]; //(sum - (double)temp)) = the fraction component of the number
+            long unsigned int temp = (long unsigned int)sum;//temp is now the floating point sum without the values after the decimal
+            vectorOut[i] = (float)((double)(vectorIn[temp + 1] - vectorIn[temp]) * (sum - (double)temp) + (double)vectorIn[temp]); //(sum - (double)temp)) = the fraction component of the number
         }
-        cout << "Finished loop without crash\n";
         return vectorOut;
     }
 
