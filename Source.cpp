@@ -442,10 +442,11 @@ int main(int, char**)
         bool fourierUpdated = false;
 
         //Fourier information
-        int fourierSize = 1024;
+        long unsigned int fourierSize = 1024;
         int fourierSizePower = 10;
         float waveFreq = 1000;
-        int measuredFundamental = 0;
+        float measuredFundamental = 0;
+        long unsigned int measuredFundamentalIndex = 0;
     };
     
     vector<dataWindow> windows;
@@ -691,60 +692,37 @@ int main(int, char**)
                     /*
                     Fourier buttons
                     */
-
+                    bool fourierChanged = false;
 
                     if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
                         applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
-                        windows[i].fourierUpdated = true;
-                        windows[i].showFourier = false; //Hides graph so doesn't break when values change
-
-                        //Find fundamental freq
-                        int highestIndex = 0;
-                        float highest = 0.0f;
-                        for (int j = 0; j < windows[i].fourierMag.size()/2; j++) {
-                            if (highest < windows[i].fourierMag[j]) {
-                                highest = windows[i].fourierMag[j];
-                                highestIndex = j;
-                            }
-                        }
-                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
-                        windows[i].waveFreq = windows[i].measuredFundamental;
+                        fourierChanged = true;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Fourier")) {
                         applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
-                        windows[i].fourierUpdated = true;
-                        windows[i].showFourier = false;
-
-                        //Find fundamental freq
-                        int highestIndex = 0;
-                        float highest = 0.0f;
-                        for (int j = 0; j < windows[i].fourierMag.size() / 2; j++) {
-                            if (highest < windows[i].fourierMag[j]) {
-                                highest = windows[i].fourierMag[j];
-                                highestIndex = j;
-                            }
-                        }
-                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
-                        windows[i].waveFreq = windows[i].measuredFundamental;
+                        fourierChanged = true;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("FFTW3")) {
                         fftwFourier(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate());
-                        windows[i].fourierUpdated = true;
-                        windows[i].showFourier = false;
+                        fourierChanged = true;
+                    }
 
+                    //If fourier has been changed, some updates need to be applied.
+                    if (fourierChanged) {
                         //Find fundamental freq
-                        int highestIndex = 0;
                         float highest = 0.0f;
                         for (int j = 0; j < windows[i].fourierMag.size() / 2; j++) {
                             if (highest < windows[i].fourierMag[j]) {
                                 highest = windows[i].fourierMag[j];
-                                highestIndex = j;
+                                windows[i].measuredFundamentalIndex = j;
                             }
                         }
-                        windows[i].measuredFundamental = windows[i].fourierFreq[highestIndex];
+                        windows[i].measuredFundamental = windows[i].fourierFreq[windows[i].measuredFundamentalIndex];
                         windows[i].waveFreq = windows[i].measuredFundamental;
+                        windows[i].fourierUpdated = true;
+                        windows[i].showFourier = false;
                     }
 
 
@@ -857,7 +835,7 @@ int main(int, char**)
 
         //moved from previous button, so multiple things can access it.
 
-        //Updating display values of the buffer
+        //Updating display values of windows' buffer and fourier displays.
 
         for (int j = 0; j < windows.size(); j++) {
             if (windows[j].dataUpdated) {
@@ -898,8 +876,16 @@ int main(int, char**)
                 windows[j].magDisplay.clear();
                 windows[j].magDisplay.resize(sampleLimit);
 
+                bool fundamentalIncluded = false;
+
                 for (int i = 0; i < sampleLimit; i++) {
                     long unsigned int location = (long unsigned int)round(pow(10, stepPerSample * (double)i)); //Steps through in log function in proportion of 1/sampleLimit of max. Splits log into sampleLimit pieces.
+                    
+                    //Ensures fundamental frequency component is always displayed, no matter how low the resolution of the display.
+                    if (!fundamentalIncluded && (location > windows[j].measuredFundamentalIndex)) {
+                        location = windows[j].measuredFundamentalIndex;
+                        fundamentalIncluded = true;
+                    }
 
                     //cout << "Location is " << location << "\n";
 
