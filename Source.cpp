@@ -90,12 +90,12 @@ void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float
     magnitude.resize(dataIn.size());
 
     //convert to x values
-    for (int i = 0; i < dataIn.size(); i++) {
-        freq[i] = (double)(i * sampleRate) / (double)dataIn.size();
+    for (long unsigned int i = 0; i < dataIn.size(); i++) {
+        freq[i] = (double)i * (double)sampleRate / (double)dataIn.size();
     }
 
     //convert to y values
-    for (int i = 0; i < dataIn.size(); i++) {
+    for (long unsigned int i = 0; i < dataIn.size(); i++) {
         magnitude[i] = abs(temp[i]);
     }
 }
@@ -128,14 +128,14 @@ void applyFourierWindowedSimple(vector<int16_t> dataIn, vector<float>& magnitude
             magnitude[i]+= abs(temp[i]);
         }
     }
-    for (int i = 0; i < windowSize; i++) {
+    for (long unsigned int i = 0; i < windowSize; i++) {
         magnitude[i] = magnitude[i] / (float)windowNum / (float)pow(2, 15);
     }
 
 
     //convert to x values
-    for (int i = 0; i < windowSize; i++) {
-        freq[i] = (double)(i * sampleRate) / (double)windowSize;
+    for (long unsigned int i = 0; i < windowSize; i++) {
+        freq[i] = (double)i * (double)sampleRate / (double)windowSize;
     }
 }
 
@@ -262,14 +262,14 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
     std::cout << "Number of windows" << numberOfWindows << "\n";
 
 
-    for (int i = 0; i < windowSize; i++) {
+    for (long unsigned int i = 0; i < windowSize; i++) {
         magnitude[i] = magnitude[i] / (float)numberOfWindows / (float)pow(2, 15);
     }
 
 
     //convert to x values
-    for (int i = 0; i < windowSize; i++) {
-        freq[i] = (double)(i * sampleRate) / (double)windowSize;
+    for (long unsigned int i = 0; i < windowSize; i++) {
+        freq[i] = (double)i * (double)sampleRate / (double)windowSize;
     }
 }
 
@@ -278,7 +278,7 @@ void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>&
 
     fftw_complex* in, * out;
 
-    int N = input.size();
+    long unsigned int N = input.size();
     magnitude.clear();
     freq.clear();
 
@@ -289,7 +289,7 @@ void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>&
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
 
-    for (int i = 0; i < N; i++) {
+    for (long unsigned int i = 0; i < N; i++) {
         in[i][0] = (double)input[i] / pow(2.0, 15.0);
     }
 
@@ -299,9 +299,9 @@ void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>&
 
     fftw_destroy_plan(p);
 
-    for (int i = 0; i < N; i++) {
+    for (long unsigned int i = 0; i < N; i++) {
         magnitude[i] = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
-        freq[i] = (double)(i * sampleRate) / (double)N;
+        freq[i] = (double)i * (double)sampleRate / (double)N;
     }
 
     fftw_free(in); fftw_free(out);
@@ -424,6 +424,11 @@ int main(int, char**)
         vector<float> magDisplay;
         vector<float> freqDisplay;
 
+        //Culled displays of fourier stuff
+        vector<float> magDisplayCul;
+        vector<float> freqDisplayCul;
+
+
         //Now contains own wav
         //wavReader wav;
 
@@ -438,6 +443,7 @@ int main(int, char**)
         bool millisecUpdated = false;
         //Fourier flags
         bool showFourier = false;
+        bool fourierUpdated = false;
 
         //Fourier information
         int fourierSize = 1024;
@@ -670,10 +676,15 @@ int main(int, char**)
                     ss << "Samples: " << windows[i].dataBuffer.size();
                     ImGui::Text(ss.str().c_str());
 
+                    /*
+                    Fourier buttons
+                    */
+
 
                     if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
                         applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
                         windows[i].showFourier = true;
+                        windows[i].fourierUpdated = true;
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -691,6 +702,7 @@ int main(int, char**)
                     if (ImGui::Button("Fourier")) {
                         applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
                         windows[i].showFourier = true;
+                        windows[i].fourierUpdated = true;
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -708,6 +720,7 @@ int main(int, char**)
                     if (ImGui::Button("FFTW3")) {
                         fftwFourier(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate());
                         windows[i].showFourier = true;
+                        windows[i].fourierUpdated = true;
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -839,19 +852,6 @@ int main(int, char**)
                 vector<int16_t> temp = vectorStuff::resampleToSize(windows[j].dataBuffer, sampleLimit);
                 windows[j].dataDisplay.clear();
                 windows[j].dataDisplay.resize(temp.size());
-                
-
-                //Debugging
-
-                std::cout << "temp size" << temp.size() << "\n";
-
-                for (int i = 0; i < 5; i++) {
-                    std::cout << "From start " << i << " " << temp[i] << " " << windows[j].dataBuffer[i] << "\n";
-                }
-                for (int i = 0; i < 5; i++) {
-                    std::cout << "From end " << i << " " << temp[temp.size()-i] << " " << windows[j].dataBuffer[windows[j].dataBuffer.size()-i] << "\n";
-                }
-                //End of debug
 
                 vectorStuff::floatData(&temp[0], &windows[j].dataDisplay[0], temp.size());
 
@@ -864,6 +864,9 @@ int main(int, char**)
                 }
                 windows[j].dataUpdated = false;
                 windows[j].showBuffer = true;
+            }
+            if (windows[j].fourierUpdated) {
+
             }
         }
         
