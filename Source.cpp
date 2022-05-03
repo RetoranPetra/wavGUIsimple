@@ -21,7 +21,6 @@
 
 //Audio Playback
 #include <Windows.h>
-#include <thread>
 
 //Fourier transform
 #include <fftw3.h>
@@ -44,7 +43,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-//used to convert cstring to string, only works for 100 max size
+//used to convert cstring to string, only works for 100 max size. Used for parsing filepath.
 std::string charNullEnderToString(char* charPointer, unsigned int length) {
     for (int i = 0; i < 100; i++) {
         if (*(charPointer + i) == NULL) {
@@ -53,18 +52,6 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
         }
     }
     return std::string(charPointer, charPointer + length);
-}
-
-void playOut() {
-    std::fstream fp;
-    fp.open("out.wav", std::ios::in);
-    if (fp.is_open()) {
-        PlaySound(L"out.wav", NULL, SND_SYNC);
-    }
-    else {
-        std::cout << "Failure to open out.wav\n";
-    }
-    fp.close();
 }
 
 //Wrappers for class functions
@@ -419,6 +406,7 @@ int main(int, char**)
     vector<int16_t> wavData;
 
 
+
     //Databuffer system saved
     struct dataWindow{
         //Data display stuff
@@ -624,9 +612,17 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Play out.wav")) {
-                //Removes from main thread to prevent freezing
-                std::thread audio(playOut);
-                audio.detach();
+                //Stores filereader for windows audio playback
+                std::fstream fp;
+                fp.open("out.wav", std::ios::in);
+                if (fp.is_open()) {
+                    PlaySound(L"out.wav", NULL, SND_ASYNC);
+                }
+                fp.close();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Stop playback")) {
+                PlaySound(NULL,NULL,SND_ASYNC);
             }
             ImGui::End();
         }
