@@ -25,6 +25,9 @@
 //Fourier transform
 #include <fftw3.h>
 
+//Simple maths stuff
+#include <math.h>
+
 
 #define GUI
 #define fileBuffer 100
@@ -424,19 +427,12 @@ int main(int, char**)
         vector<float> magDisplay;
         vector<float> freqDisplay;
 
-        //Culled displays of fourier stuff
-        vector<float> magDisplayCul;
-        vector<float> freqDisplayCul;
-
-
-        //Now contains own wav
-        //wavReader wav;
-
-
-
         //Flags
         bool dataUpdated = false;
         bool showBuffer = false;
+
+        bool showBufferGraphs = false; //Needs to be present, otherwise when values update without graphs knowledge it breaks it.
+
         //millisec mode flags
         bool millisecMode = false;
         int millisecCurrent = 0;
@@ -556,18 +552,31 @@ int main(int, char**)
             if (ImGui::Button("Import to Buffer") && wav.is_open()) {
                 windows[currentBuffer].dataBuffer = wavData;
                 windows[currentBuffer].dataUpdated = true;
+                windows[currentBuffer].showBufferGraphs = false;
             }
 
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
             if (ImGui::InputInt("Max Samples on Plot", &sampleLimit, 1e4, 1e6)) {
                 if (sampleLimit < 1e3) { sampleLimit = 1e3; }//can't be close to 0
+
+                //When changing sample limit need to update all displays values. Only change values if they're already set to be displayed, so things aren't called to operate on empty memory.
+
+                if (windows[currentBuffer].showBufferGraphs) {
+                    windows[currentBuffer].dataUpdated = true;
+                    windows[currentBuffer].showBufferGraphs = false;
+                }
+                if (windows[currentBuffer].showFourier) {
+                    windows[currentBuffer].fourierUpdated = true;
+                    windows[currentBuffer].showFourier = false;
+                }
             }
 
             if (ImGui::Button("Apply Sola to Buffer")) {
                 applySola(solaTimeScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
                 //Flag Reseting
                 windows[currentBuffer].dataUpdated = true;
+                windows[currentBuffer].showBufferGraphs = false;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -580,6 +589,7 @@ int main(int, char**)
             if (ImGui::Button("Apply Resampling")) {
                 windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() * resampleTimeScale);
                 windows[currentBuffer].dataUpdated = true;
+                windows[currentBuffer].showBufferGraphs = false;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -603,6 +613,7 @@ int main(int, char**)
                     applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
                 }
                 windows[currentBuffer].dataUpdated = true;
+                windows[currentBuffer].showBufferGraphs = false;
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100.0f);
@@ -644,37 +655,38 @@ int main(int, char**)
                         windows[i].millisecMode = !windows[i].millisecMode;
                     }
 
-                    ss << "Plot of buffer " << i;
-                    if (!windows[i].millisecMode) {
-                        if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
-                            ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
-                            ImPlot::EndPlot();
-                        }
-                    }
-                    else {
-                        if (windows[i].millisecUpdated) { ImPlot::FitNextPlotAxes(); windows[i].millisecUpdated = false; }//recentres plot
-                        int samples = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
-                        if (ImPlot::BeginPlot((ss.str() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
-                            ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].dataBuffer[samples * windows[i].millisecCurrent], samples); //need timescale
-                            ImPlot::EndPlot();
-                        }
-                    }
-                    ss.str(std::string());
-                    if (windows[i].millisecMode) {
-                        if (ImGui::InputInt("20ms sampleNumber", &windows[i].millisecCurrent, 1, 100)) {
-                            windows[i].millisecUpdated = true;
-                            int max = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
-                            if (windows[i].millisecCurrent > max - 1) {
-                                windows[i].millisecCurrent = max - 1;
-                            }
-                            else if (windows[i].millisecCurrent < 0) {
-                                windows[i].millisecCurrent = 0;
+                    if (windows[i].showBufferGraphs) {
+                        ss << "Plot of buffer " << i;
+                        if (!windows[i].millisecMode) {
+                            if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
+                                ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
+                                ImPlot::EndPlot();
                             }
                         }
+                        else {
+                            if (windows[i].millisecUpdated) { ImPlot::FitNextPlotAxes(); windows[i].millisecUpdated = false; }//recentres plot
+                            int samples = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
+                            if (ImPlot::BeginPlot((ss.str() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
+                                ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].dataBuffer[samples * windows[i].millisecCurrent], samples); //need timescale
+                                ImPlot::EndPlot();
+                            }
+                        }
+                        ss.str(std::string());
+                        if (windows[i].millisecMode) {
+                            if (ImGui::InputInt("20ms sampleNumber", &windows[i].millisecCurrent, 1, 100)) {
+                                windows[i].millisecUpdated = true;
+                                int max = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
+                                if (windows[i].millisecCurrent > max - 1) {
+                                    windows[i].millisecCurrent = max - 1;
+                                }
+                                else if (windows[i].millisecCurrent < 0) {
+                                    windows[i].millisecCurrent = 0;
+                                }
+                            }
+                        }
+                        ss << "Samples: " << windows[i].dataBuffer.size();
+                        ImGui::Text(ss.str().c_str());
                     }
-
-                    ss << "Samples: " << windows[i].dataBuffer.size();
-                    ImGui::Text(ss.str().c_str());
 
                     /*
                     Fourier buttons
@@ -683,8 +695,8 @@ int main(int, char**)
 
                     if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
                         applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
-                        windows[i].showFourier = true;
                         windows[i].fourierUpdated = true;
+                        windows[i].showFourier = false; //Hides graph so doesn't break when values change
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -701,8 +713,8 @@ int main(int, char**)
                     ImGui::SameLine();
                     if (ImGui::Button("Fourier")) {
                         applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
-                        windows[i].showFourier = true;
                         windows[i].fourierUpdated = true;
+                        windows[i].showFourier = false;
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -719,8 +731,8 @@ int main(int, char**)
                     ImGui::SameLine();
                     if (ImGui::Button("FFTW3")) {
                         fftwFourier(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate());
-                        windows[i].showFourier = true;
                         windows[i].fourierUpdated = true;
+                        windows[i].showFourier = false;
 
                         //Find fundamental freq
                         int highestIndex = 0;
@@ -772,7 +784,7 @@ int main(int, char**)
                         )) {
                             //Converts float to new array as data is stored continguously in vectors, same as arrays.
                             //cout << "Size of 20ms is: " << size << "\n";
-                            ImPlot::PlotLine(ss.str().c_str(), &windows[i].fourierFreq[0], &windows[i].fourierMag[0], windows[i].fourierMag.size()/2);//divided by two to only show positive freq values
+                            ImPlot::PlotLine(ss.str().c_str(), &windows[i].freqDisplay[0], &windows[i].magDisplay[0], windows[i].magDisplay.size());//divided by two to only show positive freq values
                             ImPlot::EndPlot();
                         }
                     }
@@ -864,9 +876,43 @@ int main(int, char**)
                 }
                 windows[j].dataUpdated = false;
                 windows[j].showBuffer = true;
+                windows[j].showBufferGraphs = true;
             }
             if (windows[j].fourierUpdated) {
+                //Culling unneeded points for display for fourier transform
 
+                double highestFreq = windows[j].fourierFreq[windows[j].fourierFreq.size() / 2];
+                cout << "Highest freq" << highestFreq;
+
+                double highestFreq10 = log10(highestFreq);
+
+                cout << "Highest freq log" << highestFreq10;
+
+                double stepPerSample = highestFreq10 / (double)sampleLimit;
+
+                cout << "stepPerSample" << stepPerSample;
+
+                windows[j].freqDisplay.clear();
+                windows[j].freqDisplay.resize(sampleLimit);
+
+                windows[j].magDisplay.clear();
+                windows[j].magDisplay.resize(sampleLimit);
+
+                for (int i = 0; i < sampleLimit; i++) {
+                    long unsigned int location = (long unsigned int)round(pow(10, stepPerSample * (double)i)); //Steps through in log function in proportion of 1/sampleLimit of max. Splits log into sampleLimit pieces.
+
+                    //cout << "Location is " << location << "\n";
+
+                    windows[j].freqDisplay[i] = windows[j].fourierFreq[location];
+                    windows[j].magDisplay[i] = windows[j].fourierMag[location];
+                }
+
+
+                //windows[j].freqDisplay = std::vector<float>(windows[j].fourierFreq.begin(), windows[j].fourierFreq.begin()+ windows[j].fourierFreq.size()/2);
+                //windows[j].magDisplay = std::vector<float>(windows[j].fourierMag.begin(), windows[j].fourierMag.begin() + windows[j].fourierMag.size() / 2);
+
+                windows[j].fourierUpdated = false;
+                windows[j].showFourier = true;
             }
         }
         
