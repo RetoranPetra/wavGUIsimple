@@ -13,12 +13,6 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 	//Uses cross-correlation to find the optimal location for next segment, least difference between segments in overlap
 	int optOffset = 0;							//Stores value of optimal offset
 	double optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0, so doesn't get stuck on 0 and break loop in beginning.
-	double* temp = new double[overlapSize] {};	//Initialises new array to store values of previous slope vals
-
-	//Calculates what overlap would be from the first segment, same no matter what second segment is, just combines when mixed at end.
-	for (int i = 0; i < overlapSize; i++) {
-		temp[i] = previous[i] * i * (overlapSize - i);
-	}
 
 	//Finds segment that matches best with precalculated first segment overlap values.
 	for (int i = 0; i < -seekWindow; i--) {
@@ -26,7 +20,7 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 
 		for (int j = 0; j < overlapSize; j++) {
 			//Makes sum of correlation of all points between 
-			thisCorrelation += ((double)current[i + j] * temp[j])/sqrt((double)current[i + j] * temp[j] * (double)current[i + j] * temp[j]); //Normalised correlation, better than correlation
+			thisCorrelation += ((double)current[i + j] * previous[j])/sqrt((double)current[i + j] * previous[j] * (double)current[i + j] * previous[j]); //Normalised correlation, better than correlation
 		}
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
@@ -35,8 +29,6 @@ int SOLA::seekOverlap(int16_t* previous, int16_t* current) {
 		}
 
 	}
-	//Deallocates memory, returns offset
-	delete[] temp;
 	return optOffset; //negative offset, not positive
 }
 
@@ -81,7 +73,7 @@ void SOLA::sola() {
 		l_output += sequenceSize - overlapSize;
 
 		//Update counters to match new values
-		numSamplesOut += sequenceSize - overlapSize;
+		numSamplesOut += sequenceSize - overlapSize; //Adds new sequence, but haven't done overlap at end of sequence yet so need to take away that portion.
 		//Processed this amount from input, now do output.
 		numSamplesIn -= processDistance;
 	}
@@ -89,9 +81,9 @@ void SOLA::sola() {
 
 	//std::cout << "Hello world!";
 
-	std::cout << "Difference in addresses" << (long unsigned int)(l_input - &input[0]) << "\n";
+	//std::cout << "Difference in addresses" << (long unsigned int)(l_input - &input[0]) << "\n";
 
-	output.resize((int)(l_input - input.data()));
+	//output.resize((int)(l_input - input.data()));
 }
 
 SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
@@ -102,7 +94,9 @@ SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekW
 	inputLength = input.size();
 	
 
-
 	flatDuration = (sequenceSize - (2 * overlapSize));
 	processDistance = (int)((sequenceSize - overlapSize) / timeScale);
+
+
+	std::cout << "timeScale" << timeScale << "windowSize" << sequenceSize << "overlapSize" << overlapSize << "seekWindow" << seekWindow << "processdistance" << processDistance << "\n";
 }
