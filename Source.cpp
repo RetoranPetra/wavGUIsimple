@@ -383,7 +383,7 @@ int main(int, char**)
 
     wavReader wav;
 
-    bool wavWindow = false;
+    bool wavWindow = true;
 
     bool plotWindowSOLA = false;
 
@@ -476,14 +476,19 @@ int main(int, char**)
         }
 
         {
-            ImGui::Begin("Base Window");
-            ImGui::Checkbox("Show Demo Window", &showDemo);
-            ImGui::Checkbox("Show WavReader", &wavWindow);
-            ImGui::Checkbox("Show Plot Demo", &showPlotDemo);
+            ImGui::Begin("Window Handler");
+            ImGui::Checkbox("WAVHandler", &wavWindow);
+            ImGui::Checkbox("Sola Adjust", &solaAdjustWindow);
+            ImGui::Checkbox("Buffer Selection", &dataWindowTable);
+            //ImGui::Checkbox("Show Demo Window", &showDemo);
+            //ImGui::Checkbox("Show WavReader", &wavWindow);
+            //ImGui::Checkbox("Show Plot Demo", &showPlotDemo);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            /*
             if (ImGui::Button("Hello Button")) {
                 cout << "Hello to you!\n";
             }
+            */
             ImGui::End();
         }
 
@@ -514,7 +519,10 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Delete primary buffer")) {
-                windows.erase(windows.begin()+currentBuffer); //Erases selected
+                if (currentBuffer != 0) {
+                    windows.erase(windows.begin() + currentBuffer); //Erases selected, as long as not base
+                }
+                currentBuffer = 0;
             }
 
             for (int i = 0; i < windows.size(); i++) {
