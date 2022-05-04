@@ -103,6 +103,7 @@ void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float
     }
 }
 
+//Successive applications of this seems to sharpen fourier as well, make sure that not interfering with other values.
 void applyFourierWindowedSimple(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int windowSize) {
     int windowNum = dataIn.size() / windowSize;
     magnitude.resize(windowSize);
@@ -277,6 +278,7 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 }
 
 //Gave up on my way, used the community library. Works infinitely better.
+//Causing problems when called multiple times. No idea why. is it corrupting input data?
 void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>& freq, int sampleRate) {
 
     fftw_complex* in, * out;
@@ -304,7 +306,7 @@ void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>&
 
     for (long unsigned int i = 0; i < N; i++) {
         magnitude[i] = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
-        freq[i] = (double)i * (double)sampleRate / (double)N;
+        freq[i] = (float)i * (float)sampleRate / (float)N;
     }
 
     fftw_free(in); fftw_free(out);
@@ -660,7 +662,7 @@ int main(int, char**)
                         ss << "Plot of buffer " << i;
                         if (!windows[i].millisecMode) {
                             if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
-                                ImPlot::PlotStairs(wav.getFileName().c_str(), &windows[i].dataTimeDisplay[0], &windows[i].dataDisplay[0], windows[i].dataDisplay.size());
+                                ImPlot::PlotStairs(wav.getFileName().c_str(), windows[i].dataTimeDisplay.data(), windows[i].dataDisplay.data(), windows[i].dataDisplay.size());
                                 ImPlot::EndPlot();
                             }
                         }
@@ -762,7 +764,7 @@ int main(int, char**)
                         )) {
                             //Converts float to new array as data is stored continguously in vectors, same as arrays.
                             //cout << "Size of 20ms is: " << size << "\n";
-                            ImPlot::PlotLine(ss.str().c_str(), &windows[i].freqDisplay[0], &windows[i].magDisplay[0], windows[i].magDisplay.size());//divided by two to only show positive freq values
+                            ImPlot::PlotLine(ss.str().c_str(), windows[i].freqDisplay.data(), windows[i].magDisplay.data(), windows[i].magDisplay.size());//divided by two to only show positive freq values
                             ImPlot::EndPlot();
                         }
                     }
@@ -843,7 +845,7 @@ int main(int, char**)
                 windows[j].dataDisplay.clear();
                 windows[j].dataDisplay.resize(temp.size());
 
-                vectorStuff::floatData(&temp[0], &windows[j].dataDisplay[0], temp.size());
+                vectorStuff::floatData(temp.data(), windows[j].dataDisplay.data(), temp.size());
 
 
                 windows[j].dataTimeDisplay.clear();
@@ -858,6 +860,8 @@ int main(int, char**)
             }
             if (windows[j].fourierUpdated) {
                 //Culling unneeded points for display for fourier transform
+//#define toggleCulling
+#ifdef toggleCulling
 
                 double highestFreq = windows[j].fourierFreq[windows[j].fourierFreq.size() / 2];
                 cout << "Highest freq" << highestFreq;
@@ -892,10 +896,25 @@ int main(int, char**)
                     windows[j].freqDisplay[i] = windows[j].fourierFreq[location];
                     windows[j].magDisplay[i] = windows[j].fourierMag[location];
                 }
+                cout << "Culling enabled!\n";
+#else
+                cout << "Culling disabled!\n";
+                windows[j].freqDisplay = std::vector<float>(windows[j].fourierFreq.begin(), windows[j].fourierFreq.begin()+ windows[j].fourierFreq.size()/2);
+                windows[j].magDisplay = std::vector<float>(windows[j].fourierMag.begin(), windows[j].fourierMag.begin() + windows[j].fourierMag.size() / 2);
+#endif
+                std::ofstream fileOut;
+                fileOut.open("debugWavData.txt");
+                for (unsigned int i = 0; i < windows[j].dataBuffer.size(); i++) {
+                    fileOut << windows[j].dataBuffer[i] << "\n";
+                }
+                fileOut.close();
 
+                fileOut.open("debugFourier.txt");
+                for (unsigned int i = 0; i < windows[j].fourierMag.size(); i++) {
+                    fileOut << windows[j].fourierMag[i] << " " << windows[j].fourierFreq[i] << "\n";
+                }
+                fileOut.close();
 
-                //windows[j].freqDisplay = std::vector<float>(windows[j].fourierFreq.begin(), windows[j].fourierFreq.begin()+ windows[j].fourierFreq.size()/2);
-                //windows[j].magDisplay = std::vector<float>(windows[j].fourierMag.begin(), windows[j].fourierMag.begin() + windows[j].fourierMag.size() / 2);
 
                 windows[j].fourierUpdated = false;
                 windows[j].showFourier = true;

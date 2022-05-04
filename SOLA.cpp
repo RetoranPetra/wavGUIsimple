@@ -44,10 +44,10 @@ void SOLA::sola() {
 
 	//use local versions of variables so same SOLA object can be reused, otherwise would need to create new object for every SOLA operation.
 	int numSamplesOut = 0;
-	int16_t* seq_offset = &input[0];
+	int16_t* seq_offset = input.data();
 	int16_t* prev_offset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
-	int16_t* l_input = &input[0];
-	int16_t* l_output = &output[0];
+	int16_t* l_input = input.data();
+	int16_t* l_output = output.data();
 
 	//Reduces over time, basically counts things left in input
 	int numSamplesIn = inputLength-1; //Needs to be -1 to count 0
@@ -89,9 +89,9 @@ void SOLA::sola() {
 
 	//std::cout << "Hello world!";
 
-	std::cout << "Difference in addresses" << (long unsigned int)(l_input - &input[0]) << "\n";
+	std::cout << "Difference in addresses" << (long unsigned int)(l_input - input.data()) << "\n";
 
-	output.resize((int)(l_input - &input[0]));
+	output.resize((int)(l_input - input.data()));
 }
 
 SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
