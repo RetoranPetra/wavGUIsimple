@@ -89,7 +89,7 @@ void SOLA::sola() {
 
 	//std::cout << "Hello world!";
 
-	std::cout << "Difference in addresses" << (long unsigned int)(l_input - input.data()) << "\n";
+	std::cout << "Difference in addresses" << (long unsigned int)(l_input - &input[0]) << "\n";
 
 	output.resize((int)(l_input - input.data()));
 }
@@ -104,5 +104,5 @@ SOLA::SOLA(float l_timeScale, int l_sequenceSize, int l_overlapSize, int l_seekW
 
 
 	flatDuration = (sequenceSize - (2 * overlapSize));
-	processDistance = (int)((sequenceSize - overlapSize) * timeScale);
+	processDistance = (int)((sequenceSize - overlapSize) / timeScale);
 }

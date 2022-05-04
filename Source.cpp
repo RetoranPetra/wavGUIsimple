@@ -65,7 +65,7 @@ void applySola(float freqScale, int processingSamples, int overlapSamples, int o
     temp.resize(size);
 
     //Sola with default values
-    SOLA newCalc(1.0 / freqScale,
+    SOLA newCalc(freqScale,
         processingSamples,//Processing sequence size
         overlapSamples,//Overlap size
         overlapSeekSamples,//Seek for best overlap size
@@ -292,24 +292,24 @@ void fftwFourier(vector<int16_t> input, vector<float>& magnitude, vector<float>&
 
     fftw_plan p;
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
-    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
-
+    out = in;
+    p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    //Need to write to in after plan creation. Estimate CAN cause the in array to be overwritten, better be safe.
+    //found in first page of documentation after I started getting errors
     for (long unsigned int i = 0; i < N; i++) {
         in[i][0] = (double)input[i] / pow(2.0, 15.0);
     }
-
-    p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     fftw_execute(p);
 
     fftw_destroy_plan(p);
 
     for (long unsigned int i = 0; i < N; i++) {
-        magnitude[i] = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+        magnitude[i] = (float)sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
         freq[i] = (float)i * (float)sampleRate / (float)N;
     }
 
-    fftw_free(in); fftw_free(out);
+    fftw_free(in);
 }
 
 
@@ -860,7 +860,7 @@ int main(int, char**)
             }
             if (windows[j].fourierUpdated) {
                 //Culling unneeded points for display for fourier transform
-//#define toggleCulling
+#define toggleCulling
 #ifdef toggleCulling
 
                 double highestFreq = windows[j].fourierFreq[windows[j].fourierFreq.size() / 2];
