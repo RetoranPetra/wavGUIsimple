@@ -8,11 +8,17 @@ int SOLA::seekWindowIndex(int16_t* previous, int16_t* current) {
 	//Finds segment that matches best with precalculated first segment overlap values.
 	for (int i = 0; i < -seekWindow; i--) {
 		double thisCorrelation = 0;
+		double numerator = 0;
+		double denominator1 = 0;
+		double denominator2 = 0;
 
 		for (int j = 0; j < overlapSize; j++) {
-			//Makes sum of correlation of all points between 
-			thisCorrelation += ((double)current[i + j] * previous[j])/sqrt((double)current[i + j] * previous[j] * (double)current[i + j] * previous[j]); //Normalised correlation, better than correlation
+			//Each of these is an individual sum that needs to be calculated seperately, not the same as looping through fraction all at once
+			numerator += (double)current[i + j] * (double)previous[j];
+			denominator1 += (double)current[i + j] * (double)current[i + j];
+			denominator2 += (double)previous[j] * (double)previous[j];
 		}
+		thisCorrelation = numerator / sqrt(denominator1 * denominator2); //Normalised correlation
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
 			optCorrelation = thisCorrelation;
@@ -26,32 +32,35 @@ int SOLA::seekWindowIndex(int16_t* previous, int16_t* current) {
 void SOLA::sola() {
 
 	//use local versions of variables so same SOLA object can be reused, otherwise would need to create new object for every SOLA operation.
-	int numSamplesOut = 0;
-	int16_t* windowOffset = input.data();
-	int16_t* prevWindowOffset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
-	int16_t* inputLocation = input.data();
-	int16_t* outputLocation = output.data();
 
-	int samplesRead = 0;
+	//Where the current window is
+	int16_t* windowOffset = input.data();
+	//Where the last window was
+	int16_t* prevWindowOffset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
+	//Where to start the search from
+	int16_t* inputLocation = windowOffset;
+	int16_t* baseInput = inputLocation;
+	//Where to put the windows when found.
+	int16_t* outputLocation = internalBuffer.data();
+	int16_t* baseOutput = outputLocation;
 
 	//Main Loop, works through sample to apply SOLA.
-	
-	for (int samplesRead = 0; //Number of samples processed
-		nextWindowDistance + seekWindow < input.size() - 1 - samplesRead; //Checks if about to go out of range, if next loop will go out of range, stop.
+	for (int samplesRead = 0;//Number of samples processed
+		nextWindowDistance < input.size() - 1 - samplesRead; //Checks if about to go out of range, if next loop will go out of range, stop.
 		samplesRead += nextWindowDistance) { //increases samplesread by the estimated distance to next window
 		//Copies flat to output vector
 
 		//Using memcpy for maximum performance
-
-		for (unsigned int i = 0; i < flatSize; i++) {
-			outputLocation[i] = windowOffset[i];		//Copies flat portion to output initially
-		}
 
 		//Sets previous to end of current flat segment
 		prevWindowOffset = windowOffset + flatSize;
 
 		//input pointer update to new location to seek the next sequence
 		inputLocation += nextWindowDistance - overlapSize;
+
+		for (unsigned int i = 0; i < flatSize; i++) {
+			outputLocation[i] = windowOffset[i];		//Copies flat portion to output initially
+		}
 
 		//Updates sequence offset to the optimal place using seekOverlap
 		windowOffset = inputLocation + seekWindowIndex(prevWindowOffset, inputLocation); //Seekoverlap just gives offset as number, need to add to current reader in input for location of sequence offset
@@ -72,10 +81,16 @@ void SOLA::sola() {
 
 		//Update position in output to new location, 
 		outputLocation += windowSize - overlapSize;
-
-		//Update counters to match new values
-		numSamplesOut += windowSize - overlapSize; //Adds new sequence, but haven't done overlap at end of sequence yet so need to take away that portion.
 	}
+	for (int i = 0; i < output.size()-(outputLocation - baseOutput); i++) {
+		if ((inputLocation + i) < (baseInput + input.size() - 1)) {
+			outputLocation[i] = inputLocation[i];
+		}
+		else {
+			outputLocation[i] = 0.0f;
+		}
+	}
+	output = internalBuffer;
 }
 
 SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& inputLocation, std::vector<int16_t>& outputLocation) : input(inputLocation),output(outputLocation){
@@ -87,6 +102,9 @@ SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWin
 	//Calculated values for pointer manipulation
 	nextWindowDistance = (int)((windowSize - overlapSize) / timeScale);
 	flatSize = (windowSize - (2 * overlapSize));
+
+	//Needed so when returning to same location doesn't cause problems
+	internalBuffer.resize(input.size() * timeScale);
 
 	//std::cout << "timeScale" << timeScale << "windowSize" << windowSize << "overlapSize" << overlapSize << "seekWindow" << seekWindow << "nextWindowDistance" << nextWindowDistance << "\n";
 }

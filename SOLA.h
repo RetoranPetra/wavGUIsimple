@@ -17,6 +17,8 @@ private:
 	//Pointers to data
 	std::vector<int16_t>& input;
 	std::vector<int16_t>& output;
+	//internal data holder
+	std::vector<int16_t> internalBuffer;
 
 	//Sola can be implemented with ints, as it is simple addition for the most part, but our case uses floats as that's what wavReader outputs.
 	int seekWindowIndex(int16_t* previous, int16_t* current);
