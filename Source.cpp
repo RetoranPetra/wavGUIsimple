@@ -407,8 +407,6 @@ int main(int, char**)
 
     bool wavWindow = true;
 
-    bool plotWindowSOLA = false;
-
     bool dataWindowTable = false;
 
     bool solaAdjustWindow = true;
@@ -422,9 +420,9 @@ int main(int, char**)
 
 
     //Values for SOLA changed by user.
-    float userSequenceSize = 120;
-    float userOverlapSize = 30;
-    float userSeekWindow = 20;
+    int userSequenceSize = 120;
+    int userOverlapSize = 30;
+    int userSeekWindow = 20;
 
     //Max number of samples allowed in plots.
     //Primes should be used where possible as undersampled sine waves can look funny otherwise due to periodicity.
@@ -828,17 +826,17 @@ int main(int, char**)
 
         if (solaAdjustWindow) {
             ImGui::Begin("SOLA Settings", &solaAdjustWindow);
-            if (ImGui::InputFloat("Processing Sequence Size", &userSequenceSize)) {
+            if (ImGui::InputInt("Processing Sequence Size", &userSequenceSize)) {
                 if (userSequenceSize <= 0) {
                     userSequenceSize = 1;
                 }
             }
-            if (ImGui::InputFloat("Overlap Size", &userOverlapSize)) {
+            if (ImGui::InputInt("Overlap Size", &userOverlapSize)) {
                 if (userOverlapSize <= 0) {
                     userOverlapSize = 1;
                 }
             }
-            if (ImGui::InputFloat("Seek Window", &userSeekWindow)) {
+            if (ImGui::InputInt("Seek Window", &userSeekWindow)) {
                 if (userSeekWindow <= 0) {
                     userSeekWindow = 1;
                 }
