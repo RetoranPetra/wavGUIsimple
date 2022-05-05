@@ -106,6 +106,8 @@ void applyFourier(vector<int16_t> dataIn, vector<float>& magnitude, vector<float
 //Successive applications of this seems to sharpen fourier as well, make sure that not interfering with other values.
 void applyFourierWindowedSimple(vector<int16_t> dataIn, vector<float>& magnitude, vector<float>& freq, int sampleRate, int windowSize) {
     int windowNum = dataIn.size() / windowSize;
+    freq.clear();
+    magnitude.clear();
     magnitude.resize(windowSize);
     freq.resize(windowSize);
     for (int j = 0; j < windowNum; j++) {
@@ -149,6 +151,8 @@ void applyFourierWindowed(vector<int16_t> dataIn, vector<float>& magnitude, vect
 
     int startingWaveSize = waveSize;
 
+    freq.clear();
+    magnitude.clear();
     magnitude.resize(windowSize);
     freq.resize(windowSize);
 
@@ -704,17 +708,17 @@ int main(int, char**)
                     */
                     bool fourierChanged = false;
 
-                    if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)")) {
+                    if (ImGui::Button("Fourier for periodic waveform (Will freeze if not)") && !fourierChanged) {
                         applyFourierWindowed(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), 1.0 / windows[i].waveFreq * wav.getSampleRate(), windows[i].fourierSize);
                         fourierChanged = true;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Fourier")) {
+                    if (ImGui::Button("Fourier") && !fourierChanged) {
                         applyFourierWindowedSimple(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate(), windows[i].fourierSize);
                         fourierChanged = true;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("FFTW3")) {
+                    if (ImGui::Button("FFTW3") && !fourierChanged) {
                         fftwFourier(windows[i].dataBuffer, windows[i].fourierMag, windows[i].fourierFreq, wav.getSampleRate());
                         fourierChanged = true;
                     }
@@ -871,7 +875,7 @@ int main(int, char**)
 #define toggleCulling
 #ifdef toggleCulling
 
-                double highestFreq = windows[j].fourierFreq[windows[j].fourierFreq.size() / 2];
+                double highestFreq = windows[j].fourierFreq[windows[j].fourierFreq.size() / 2-1];
                 cout << "Highest freq" << highestFreq;
 
                 double highestFreq10 = log10(highestFreq);
@@ -890,6 +894,8 @@ int main(int, char**)
 
                 bool fundamentalIncluded = false;
 
+                int previousLocation = -1;
+
                 for (int i = 0; i < sampleLimit; i++) {
                     long unsigned int location = (long unsigned int)round(pow(10, stepPerSample * (double)i)); //Steps through in log function in proportion of 1/sampleLimit of max. Splits log into sampleLimit pieces.
                     
@@ -898,11 +904,22 @@ int main(int, char**)
                         location = windows[j].measuredFundamentalIndex;
                         fundamentalIncluded = true;
                     }
+                    //Log can sometimes land on same index early on due to how indexing works, 
+                    if (!(location > previousLocation)) {
+                        location++;
+                    }
 
-                    //cout << "Location is " << location << "\n";
-
-                    windows[j].freqDisplay[i] = windows[j].fourierFreq[location];
-                    windows[j].magDisplay[i] = windows[j].fourierMag[location];
+                    
+                    if (location < windows[j].fourierFreq.size()/2) {
+                        windows[j].freqDisplay[i] = windows[j].fourierFreq[location];
+                        windows[j].magDisplay[i] = windows[j].fourierMag[location];
+                    }
+                    else {
+                        windows[j].freqDisplay.resize(i);
+                        windows[j].magDisplay.resize(i);
+                        break;
+                    }
+                    previousLocation = location;
                 }
                 cout << "Culling enabled!\n";
 #else
@@ -920,6 +937,12 @@ int main(int, char**)
                 fileOut.open("debugFourier.txt");
                 for (unsigned int i = 0; i < windows[j].fourierMag.size(); i++) {
                     fileOut << windows[j].fourierMag[i] << " " << windows[j].fourierFreq[i] << "\n";
+                }
+                fileOut.close();
+
+                fileOut.open("debugFourierDisplay.txt");
+                for (unsigned int i = 0; i < windows[j].magDisplay.size(); i++) {
+                    fileOut << windows[j].magDisplay[i] << " " << windows[j].freqDisplay[i] << "\n";
                 }
                 fileOut.close();
 

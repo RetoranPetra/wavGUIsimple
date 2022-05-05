@@ -105,6 +105,7 @@ SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWin
 
 	//Needed so when returning to same location doesn't cause problems
 	internalBuffer.resize(input.size() * timeScale);
+	std::fill(internalBuffer.begin(), internalBuffer.end(), 0); //Fill with zeroes just to be sure.
 
 	//std::cout << "timeScale" << timeScale << "windowSize" << windowSize << "overlapSize" << overlapSize << "seekWindow" << seekWindow << "nextWindowDistance" << nextWindowDistance << "\n";
 }
