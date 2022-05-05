@@ -400,9 +400,9 @@ int main(int, char**)
 
 
     //Values for SOLA changed by user.
-    float userSequenceSize = 100;
-    float userOverlapSize = 20;
-    float userSeekWindow = 15;
+    float userSequenceSize = 120;
+    float userOverlapSize = 30;
+    float userSeekWindow = 20;
 
     //Max number of samples allowed in plots
     int sampleLimit = 3e3;
@@ -894,7 +894,7 @@ int main(int, char**)
                     long unsigned int location = (long unsigned int)round(pow(10, stepPerSample * (double)i)); //Steps through in log function in proportion of 1/sampleLimit of max. Splits log into sampleLimit pieces.
                     
                     //Ensures fundamental frequency component is always displayed, no matter how low the resolution of the display.
-                    if (!fundamentalIncluded && (location > windows[j].measuredFundamentalIndex)) {
+                    if (!fundamentalIncluded && (location >= windows[j].measuredFundamentalIndex)) {
                         location = windows[j].measuredFundamentalIndex;
                         fundamentalIncluded = true;
                     }
