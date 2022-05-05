@@ -5,11 +5,20 @@
 //Sola Functions
 #include "SOLA.h"
 
+//Simple maths stuff
+#include <math.h>
+//Basic libraries
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <stdio.h>
+
+//Audio Playback
+#include <Windows.h>
+
+//Fourier transform
+#include <fftw3.h>
 
 //gui stuff
 #include <imgui.h>
@@ -19,14 +28,11 @@
 #include "L2DFileDialog.h"
 #include <implot.h>
 
-//Audio Playback
-#include <Windows.h>
 
-//Fourier transform
-#include <fftw3.h>
 
-//Simple maths stuff
-#include <math.h>
+
+
+
 
 
 #define GUI
@@ -143,6 +149,16 @@ void applyFourierWindowedSimple(vector<int16_t> dataIn, vector<float>& magnitude
     for (long unsigned int i = 0; i < windowSize; i++) {
         freq[i] = (double)i * (double)sampleRate / (double)windowSize;
     }
+}
+
+float findFundamental(std::vector<float> input) {
+    float highest = 0.0f;
+    for (int j = 0; j < input.size() / 2; j++) {
+        if (highest < input[j]) {
+            highest = input[j];
+        }
+    }
+    return highest;
 }
 
 //Windowsize should always be a power of 2
@@ -379,6 +395,8 @@ int main(int, char**)
     bool showPlotDemo = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    //End of OpenGL/GLFW/ImGui/ImPlot library setup.
+
 
     //My Variables
     char* fileSelectionBuffer = new char[fileBuffer](); //Allows filenames of up to 100 bytes
@@ -408,8 +426,9 @@ int main(int, char**)
     float userOverlapSize = 30;
     float userSeekWindow = 20;
 
-    //Max number of samples allowed in plots
-    int sampleLimit = 3e3;
+    //Max number of samples allowed in plots.
+    //Primes should be used where possible as undersampled sine waves can look funny otherwise due to periodicity.
+    int sampleLimit = 3083;
 
     //Stores wavdata
     vector<int16_t> wavData;
@@ -453,6 +472,17 @@ int main(int, char**)
         float waveFreq = 1000;
         float measuredFundamental = 0;
         long unsigned int measuredFundamentalIndex = 0;
+    };
+
+    //Used for outputting data via devmapped button
+    struct datum {
+        float freqScale;
+        int solaWindow;
+        int solaOverlap;
+        int solaSeek;
+        float THD;
+        float expectedFreq;
+        float measuredFreq;
     };
     
     vector<dataWindow> windows;
@@ -784,7 +814,12 @@ int main(int, char**)
                     ss << "Total Harmonic Distortion " << vectorStuff::totalHarmonicDistortion(windows[i].fourierMag) << "\nMeasured fundamental frequency: " << windows[i].measuredFundamental;
                     ImGui::Text(ss.str().c_str());
                     ss.str(std::string());
-                    ImGui::SameLine();
+#define devMode
+#ifdef devMode
+                    if (ImGui::Button("DevButton")) {
+
+                    }
+#endif
 
                     ImGui::End();
                 }
@@ -927,6 +962,8 @@ int main(int, char**)
                 windows[j].freqDisplay = std::vector<float>(windows[j].fourierFreq.begin(), windows[j].fourierFreq.begin()+ windows[j].fourierFreq.size()/2);
                 windows[j].magDisplay = std::vector<float>(windows[j].fourierMag.begin(), windows[j].fourierMag.begin() + windows[j].fourierMag.size() / 2);
 #endif
+//#define debug
+#ifdef debug
                 std::ofstream fileOut;
                 fileOut.open("debugWavData.txt");
                 for (unsigned int i = 0; i < windows[j].dataBuffer.size(); i++) {
@@ -945,7 +982,7 @@ int main(int, char**)
                     fileOut << windows[j].magDisplay[i] << " " << windows[j].freqDisplay[i] << "\n";
                 }
                 fileOut.close();
-
+#endif
 
                 windows[j].fourierUpdated = false;
                 windows[j].showFourier = true;

@@ -220,7 +220,6 @@ namespace vectorStuff {
         std::vector<std::int16_t> vectorOut(sizeAim,0);
         vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
         float ratio = (float)vectorIn.size() / (float)sizeAim;
-        cout << "Ratio: " << ratio << "\n";
         double sum = 0.0;
         for (long unsigned int i = 0; i < sizeAim; i++) {
             sum += ratio;
@@ -235,7 +234,6 @@ namespace vectorStuff {
         std::vector<float> vectorOut(sizeAim,0.0f);
         vectorIn.push_back(0);//Adds extra bit at end to copy to prevent checking out of vector bounds
         float ratio = (float)vectorIn.size() / (float)sizeAim;
-        cout << "Ratio: " << ratio << "\n";
         double sum = 0.0;
         for (long unsigned int i = 0; i < sizeAim; i++) {
             sum += ratio;
@@ -247,13 +245,12 @@ namespace vectorStuff {
     }
 
     float totalHarmonicDistortion(std::vector<float> vectorIn) {
-        //Using squares, aka power as is traditional. Amplifies magnitude difference between noise and fundamental.
 
 
         double highest = 0;
         int highestIndex = 0;
         double sum = 0;
-        for (int i = 0; i < vectorIn.size()/2; i++) {
+        for (int i = 0; i < vectorIn.size() / 2; i++) {
             double current = (double)vectorIn[i];
             if (current > highest) {
                 highest = current;
@@ -264,12 +261,11 @@ namespace vectorStuff {
         sum -= highest; //Remove highest from summation
 
         if (sum < 0) { //Sum can be negative due to floating point error with summation. Adding very small values may as well be adding 0s.
-            return -1.0; //Denotes infinite/immesurable THDf
+            return -1.0; //Denotes infinite/immeasurable THDf
         }
 
-        return sqrt(sum) / highest; //As it's sampling both sides of fourier domain, there are two maximums for one frequency.
+        return sqrt(sum) / highest;
     }
-
 
     //Depreciated functions
 

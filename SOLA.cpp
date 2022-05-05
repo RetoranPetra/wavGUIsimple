@@ -30,6 +30,16 @@ int SOLA::seekWindowIndex(int16_t* previous, int16_t* current) {
 }
 
 void SOLA::sola() {
+	//Validity checks
+	if (windowSize <= overlapSize * 2) {
+		std::cout << "Error in setup, overlap too high";
+		return;
+	}
+	if (nextWindowDistance-seekWindow <= 0) {
+		std::cout << "Seek window too large, progression could come to a halt.";
+		return;
+	}
+
 
 	//use local versions of variables so same SOLA object can be reused, otherwise would need to create new object for every SOLA operation.
 
