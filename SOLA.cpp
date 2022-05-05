@@ -27,10 +27,10 @@ void SOLA::sola() {
 
 	//use local versions of variables so same SOLA object can be reused, otherwise would need to create new object for every SOLA operation.
 	int numSamplesOut = 0;
-	int16_t* seq_offset = input.data();
-	int16_t* prev_offset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
-	int16_t* l_input = input.data();
-	int16_t* l_output = output.data();
+	int16_t* windowOffset = input.data();
+	int16_t* prevWindowOffset = nullptr; //Needs to be initialised as nullpointer, can't be left uninitialised
+	int16_t* inputLocation = input.data();
+	int16_t* outputLocation = output.data();
 
 	int samplesRead = 0;
 
@@ -44,17 +44,17 @@ void SOLA::sola() {
 		//Using memcpy for maximum performance
 
 		for (unsigned int i = 0; i < flatSize; i++) {
-			l_output[i] = seq_offset[i];		//Copies flat portion to output initially
+			outputLocation[i] = windowOffset[i];		//Copies flat portion to output initially
 		}
 
 		//Sets previous to end of current flat segment
-		prev_offset = seq_offset + flatSize;
+		prevWindowOffset = windowOffset + flatSize;
 
 		//input pointer update to new location to seek the next sequence
-		l_input += nextWindowDistance - overlapSize;
+		inputLocation += nextWindowDistance - overlapSize;
 
 		//Updates sequence offset to the optimal place using seekOverlap
-		seq_offset = l_input + seekWindowIndex(prev_offset, l_input); //Seekoverlap just gives offset as number, need to add to current reader in input for location of sequence offset
+		windowOffset = inputLocation + seekWindowIndex(prevWindowOffset, inputLocation); //Seekoverlap just gives offset as number, need to add to current reader in input for location of sequence offset
 
 
 		//Overlaps previous sample with new found sample
@@ -62,23 +62,23 @@ void SOLA::sola() {
 			//Computes overlap linearly between the two segments
 			//previous starts at strength of 1, decays to 0
 			//current starts at 0, increases to 1
-			(l_output+flatSize)[i] = ((prev_offset)[i] * (overlapSize - i) + (seq_offset)[i] * i) / overlapSize;
+			(outputLocation+flatSize)[i] = ((prevWindowOffset)[i] * (overlapSize - i) + (windowOffset)[i] * i) / overlapSize;
 		}
 
 
 		//Add overlap to pointers now that overlap has been added
-		seq_offset += overlapSize;
-		l_input += overlapSize;
+		windowOffset += overlapSize;
+		inputLocation += overlapSize;
 
 		//Update position in output to new location, 
-		l_output += windowSize - overlapSize;
+		outputLocation += windowSize - overlapSize;
 
 		//Update counters to match new values
 		numSamplesOut += windowSize - overlapSize; //Adds new sequence, but haven't done overlap at end of sequence yet so need to take away that portion.
 	}
 }
 
-SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
+SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& inputLocation, std::vector<int16_t>& outputLocation) : input(inputLocation),output(outputLocation){
 	timeScale = l_timeScale;
 	windowSize = l_windowSize;
 	overlapSize = l_overlapSize;
