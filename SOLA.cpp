@@ -35,11 +35,17 @@ void SOLA::sola() {
 	int samplesRead = 0;
 
 	//Main Loop, works through sample to apply SOLA.
-	while (input.size() - 1 - samplesRead > nextWindowDistance+seekWindow) {
+	
+	for (int samplesRead = 0; //Number of samples processed
+		nextWindowDistance + seekWindow < input.size() - 1 - samplesRead; //Checks if about to go out of range, if next loop will go out of range, stop.
+		samplesRead += nextWindowDistance) { //increases samplesread by the estimated distance to next window
 		//Copies flat to output vector
 
 		//Using memcpy for maximum performance
-		memcpy(l_output, seq_offset, flatSize * sizeof(int16_t)); //Need to use sizeof due to this being a legacy C function, doesn't do it automatically
+
+		for (unsigned int i = 0; i < flatSize; i++) {
+			l_output[i] = seq_offset[i];		//Copies flat portion to output initially
+		}
 
 		//Sets previous to end of current flat segment
 		prev_offset = seq_offset + flatSize;
@@ -69,8 +75,6 @@ void SOLA::sola() {
 
 		//Update counters to match new values
 		numSamplesOut += windowSize - overlapSize; //Adds new sequence, but haven't done overlap at end of sequence yet so need to take away that portion.
-		//Processed this amount from input, now do output.
-		samplesRead += nextWindowDistance;
 	}
 }
 
