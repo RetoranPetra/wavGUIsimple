@@ -1,19 +1,31 @@
 #include "SOLA.h"
 
+//Combines overlaps
+void SOLA::overlap(std::vector<int16_t>::iterator firstOverlap, std::vector<int16_t>::iterator secondOverlap, std::vector<int16_t>::iterator outputPosition) {
+	//Iterators needed are the positions of the start of each overlap.
+	for (int i = 0; i < overlapSize; i++) {
+		float weighting = (float)(overlapSize - i) / (float)overlapSize;
+		*(outputPosition + i) = *(firstOverlap + i) * weighting
+			+ *(secondOverlap + i) * (1.0f - weighting);
+	}
+}
+
+//Finds next index
 int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<int16_t>::iterator current) {
+	//previous is the 
 	//Uses cross-correlation to find the optimal location for next segment, least difference between segments in overlap
 	int optOffset = 0;							//Stores value of optimal offset
 	double optCorrelation = -1;					//Need to initialise at negative in case crossCorrelation begins at 0, so doesn't get stuck on 0 and break loop in beginning.
 
 
-	for (int i = 0; i < seekWindow; i++) {
+	for (int i = 0; i < seekSize; i++) {
 
 		double thisCorrelation = 0;
 		double numerator = 0;
 		double denominator1 = 0;
 		double denominator2 = 0;
 
-
+		/*
 		//only checks for positive out of range, not negative.
 		if (previous + overlapSize - 1 > baseInput + input.size() - 1 || current + overlapSize -1 > baseInput + input.size() - 1) {
 			std::cout << "Reaching out of range. If crashes all is well.\n";
@@ -23,6 +35,7 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 			std::cout << "Reaching out of range backwards. If crashes all is well.\n";
 			return 0;
 		}
+		*/
 
 		for (int j = 0; j < overlapSize; j++) {
 			//Each of these is an individual sum that needs to be calculated seperately, not the same as looping through fraction all at once
@@ -45,107 +58,118 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 }
 
 void SOLA::sola() {
-	//Validity checks
-	if (windowSize <= overlapSize * 2) {
-		std::cout << "Error in setup, overlap too high\n";
-		return;
+	/*
+	//Begins by copying flat from input to output.
+	for (int i = 0; i < flatSize; i++) {
+		*(outputLocation + i) = *(inputLocation + i);
 	}
+	//Moves both pointers forward by flat size, as that's what been written.
+	inputLocation += flatSize;
+	outputLocation += flatSize;
+	//Makes note of samples written/read
+	outputSamplesWritten += flatSize;
+	inputSamplesRead += flatSize;
+	*/
 
-	
-	if (nextWindowDistance - seekWindow < 1) {
-		seekWindow -= nextWindowDistance - seekWindow; //Estimation is DEFINITELY wrong. just returns old seekWindow size.
-		std::cout << "Seek window too large, progression could come to a halt. Try " << (double)seekWindow/48000.0*1000.0 << "ms as seekWindow at 48kHz\n";
-		return;
-	}
-	
+	//Loop stop is controlled by internal if statements.
+	for (int j = 0;;j++) {
+		std::cout << "Loop: " << j << "\n";
 
-	int loopCounter = 0;
+		//Checks if flat would go out of range, if so shortens amount of flat copied.
+		int flatToCopy = flatSize;
+		/*
+		long int expectedInputLeft =  baseInput + input.size() - (inputLocation + flatToCopy + 1);
+		long int expectedOutputLeft = baseOutput + internalBuffer.size() - (outputLocation + flatToCopy + 1);
+		std::cout << "OutputLeft: " << expectedOutputLeft << "InputLeft: " << expectedInputLeft << "\n";
+		if (expectedInputLeft <= 0 || expectedOutputLeft <= 0) {
 
-	//Main Loop, works through sample to apply SOLA.
-	while ((inputLocation+nextWindowDistance) < (baseInput + input.size() - 1)//Checks if input has room for more reads
-		&& (outputLocation+windowSize) < (baseOutput+internalBuffer.size()-1)) {//Check if output has room for more writes
-		//Copies flat to output vector
+		}*/
 
-		std::cout << "Loop: " << loopCounter << "\n";
-		loopCounter++;
-
-		//Using memcpy for maximum performance
-
-		//Sets previous to end of current flat segment
-		prevWindowOffset = windowOffset + flatSize;
-
-		//input pointer update to new location to seek the next sequence
-		inputLocation += nextWindowDistance - overlapSize;
-
-		for (unsigned int i = 0; i < flatSize; i++) {
-			outputLocation[i] = windowOffset[i];		//Copies flat portion to output initially
-		}
-
-		//Updates sequence offset to the optimal place using seekOverlap
-		int thisOffset = seekWindowIndex(prevWindowOffset, inputLocation);
-		if (thisOffset == 1) {
-			std::cout << "Just missed memory exception.\n";
+		if (outputSamplesWritten + flatSize > internalBuffer.size() || inputSamplesRead + flatSize > input.size()) {
+			std::cout << "Writing flat would go over.\n";
 			break;
 		}
-		windowOffset = inputLocation + thisOffset; //Seekoverlap just gives offset as number, need to add to current reader in input for location of sequence offset
-
-
-		//Overlaps previous sample with new found sample
-		for (int i = 0; i < overlapSize; i++) {
-			//Computes overlap linearly between the two segments
-			//previous starts at strength of 1, decays to 0
-			//current starts at 0, increases to 1
-			(outputLocation+flatSize)[i] = ((prevWindowOffset)[i] * (overlapSize - i) + (windowOffset)[i] * i) / overlapSize;
+		if (inputSamplesRead + flatSize > input.size()) {
+			std::cout << "Reading flat would go over.\n";
+			break;
 		}
 
+		//Copies flat section
+		for (int i = 0; i < flatToCopy; i++) {
+			*(outputLocation + i) = *(inputLocation + i);
+		}
+		//Updates iterators to end of flat
+		inputLocation += flatSize;
+		outputLocation += flatSize;
+		//Makes note of number of writes/reads
+		inputSamplesRead += flatSize;
+		outputSamplesWritten += flatSize;
 
-		//Add overlap to pointers now that overlap has been added
-		windowOffset += overlapSize;
-		inputLocation += overlapSize;
+		
+		//Check if seekSize could check behind the start of the vector, if it is overlap without checking for better index.
 
-		//Update position in output to new location, 
-		outputLocation += windowSize - overlapSize;
+		//Update previouswindow position to current inputlocation, and guess at where next window's position is.
+		window = inputLocation; //Positioned at end of flat of first window in input
+		nextWindow = inputLocation + nextWindowDistance - (windowSize - 2*overlapSize);
+
+
+		if (outputSamplesWritten + overlapSize > internalBuffer.size() || inputSamplesRead + nextWindowDistance - (windowSize - 2 * overlapSize) > input.size()) {
+			std::cout << "Writing/Reading overlap would go over.\n";
+			break;
+		}
+
+		int foundOffset = 0;
+		//Won't check for better window if better window search could search out of range backwards.
+		if (inputSamplesRead - seekSize) {
+			std::cout << "Actually searching for window.\n";
+			foundOffset = seekWindowIndex(window, nextWindow);
+		}
+		nextWindow += foundOffset;
+
+		//Maybe should increment by one more so overlaps don't share points with flatsize? not sure if correct.
+
+		overlap(window, nextWindow, outputLocation);
+
+		inputSamplesRead += (size_t)nextWindowDistance + (size_t)overlapSize + foundOffset;
+		outputSamplesWritten += overlapSize;
+
+		//Updates location in input to start of next flat.
+		inputLocation = nextWindow + overlapSize;
+		//Updates location in output to location of next flat
+		outputLocation += overlapSize;
 	}
-	//Fills in remaining signal
-	/*
-	for (int i = 0; i < output.size()-(outputLocation - baseOutput); i++) {
-		if ((inputLocation + i) < (baseInput + input.size() - 1)) {
-			outputLocation[i] = inputLocation[i];
-		}
-		else {
-			outputLocation[i] = 0.0f;
-		}
-	}
-	*/
-	//Instead chops off remaining signal
-	internalBuffer.resize(outputLocation - baseOutput + 1);
+
+
 
 	output = internalBuffer;
 }
 
-SOLA::SOLA(float l_timeScale, int l_windowSize, int l_overlapSize, int l_seekWindow, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
+SOLA::SOLA(double l_timeScale, int l_windowSize, int l_overlapSize, int l_seekSize, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
 	timeScale = l_timeScale;
 	windowSize = l_windowSize;
 	overlapSize = l_overlapSize;
-	seekWindow = l_seekWindow;
+	seekSize = l_seekSize;
 
 	//Calculated values for pointer manipulation
 	nextWindowDistance = (int)((windowSize - overlapSize) / timeScale);
 	flatSize = (windowSize - (2 * overlapSize));
 
 	//Needed so when returning to same location doesn't cause problems
-	internalBuffer.resize(input.size() * timeScale);
+	internalBuffer.resize((double)input.size() * timeScale);
+
+	std::cout << "internalbuffer size" << internalBuffer.size();
+
 	std::fill(internalBuffer.begin(), internalBuffer.end(), 0); //Fill with zeroes just to be sure.
 
 	//Where the current window is
-	windowOffset = input.begin();
+	nextWindow = input.begin();
 	//Where the last window was
-	prevWindowOffset = input.begin(); //Needs to be initialised as nullpointer, can't be left uninitialised
+	window = input.begin(); //Needs to be initialised as nullpointer, can't be left uninitialised
 	//Where to start the search from
 	inputLocation = input.begin();
 	baseInput = input.begin();
 	//Where to put the windows when found.
 	outputLocation = internalBuffer.begin();
 	baseOutput = internalBuffer.begin();
-	//std::cout << "timeScale" << timeScale << "windowSize" << windowSize << "overlapSize" << overlapSize << "seekWindow" << seekWindow << "nextWindowDistance" << nextWindowDistance << "\n";
+	//std::cout << "timeScale" << timeScale << "windowSize" << windowSize << "overlapSize" << overlapSize << "seekSize" << seekSize << "nextWindowDistance" << nextWindowDistance << "\n";
 }
