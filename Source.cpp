@@ -62,17 +62,17 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
 }
 
 //Wrappers for class functions
-void applySola(float freqScale, int processingSamples, int overlapSamples, int overlapSeekSamples, vector<int16_t> sampleIn, vector<int16_t> &sampleOut) { //Input in number of samples for sizes
-    int size = (int)(sampleIn.size() * freqScale);
+void applySola(double freqScale, int window_ms, int overlap_ms, int seek_ms, vector<int16_t> sampleIn, vector<int16_t> &sampleOut, unsigned int sampleRate) { //Input in number of samples for sizes
+    int size = (int)((double)sampleIn.size() * freqScale);
 
     vector<int16_t> temp;
     temp.resize(size);
 
     //Sola with default values
     SOLA newCalc(freqScale,
-        processingSamples,//Processing sequence size
-        overlapSamples,//Overlap size
-        overlapSeekSamples,//Seek for best overlap size
+        window_ms*sampleRate/1000,//Processing sequence size
+        overlap_ms * sampleRate / 1000,//Overlap size
+        seek_ms * sampleRate / 1000,//Seek for best overlap size
         sampleIn,//Data to read from
         temp//Data to send to
     );//Length of data in
@@ -614,7 +614,7 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Apply Sola to Buffer")) {
-                applySola(solaTimeScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                applySola(solaTimeScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
                 //Flag Reseting
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
@@ -643,7 +643,7 @@ int main(int, char**)
             if (ImGui::Button("Frequency Shift by factor")) {
                 if (frequencyScale > 1.0) {
 
-                    applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                    applySola(frequencyScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
                     //Resample
                     windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
                 }
@@ -651,7 +651,7 @@ int main(int, char**)
                     //Resample
                     windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
                     //Sola
-                    applySola(frequencyScale, wav.getSampleNum_ms(userSequenceSize), wav.getSampleNum_ms(userOverlapSize), wav.getSampleNum_ms(userSeekWindow), windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer);
+                    applySola(frequencyScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer,wav.getSampleRate());
                 }
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
