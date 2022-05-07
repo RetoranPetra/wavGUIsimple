@@ -124,16 +124,21 @@ void SOLA::sola() {
 	}
 }
 
-SOLA::SOLA(double l_timeScale, int l_windowSize, int l_overlapSize, int l_seekSize, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
+//Percentages should be between 1 and 0.
+SOLA::SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, double seekPercentage, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
 	timeScale = l_timeScale;
 	windowSize = l_windowSize;
-	overlapSize = l_overlapSize;
-	seekSize = l_seekSize;
+
+	//Calculated based on percentage so isn't out of range.
+	overlapSize = (int)((double)windowSize/2.0*overLapPercentage);
 
 	//Calculated values for pointer manipulation
 	//Distance between start of one window and start of another window in input.
 	nextWindowDistance = (int)((windowSize - overlapSize) / timeScale);
 	flatSize = (windowSize - (2 * overlapSize));
+
+	//Calculated based on percentage so doesn't go out of range.
+	seekSize = (int)((double)nextWindowDistance * seekPercentage);
 
 	//Needed so when returning to same location doesn't cause problems
 	internalBuffer.resize((double)input.size() * timeScale);

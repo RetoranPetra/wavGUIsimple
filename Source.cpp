@@ -62,22 +62,37 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
 }
 
 //Wrappers for class functions
-void applySola(double freqScale, int window_ms, int overlap_ms, int seek_ms, vector<int16_t> sampleIn, vector<int16_t> &sampleOut, unsigned int sampleRate) { //Input in number of samples for sizes
-    int size = (int)((double)sampleIn.size() * freqScale);
+void applySola(double timeScale, int window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t> &sampleOut, unsigned int sampleRate) { //Input in number of samples for sizes
+    int size = (int)((double)sampleIn.size() * timeScale);
 
     vector<int16_t> temp;
     temp.resize(size);
 
     //Sola with default values
-    SOLA newCalc(freqScale,
+    SOLA newCalc(timeScale,
         window_ms*sampleRate/1000,//Processing sequence size
-        overlap_ms * sampleRate / 1000,//Overlap size
-        seek_ms * sampleRate / 1000,//Seek for best overlap size
+        overlapPercent,//Overlap size
+        seekPercent,//Seek for best overlap size
         sampleIn,//Data to read from
         temp//Data to send to
     );//Length of data in
     newCalc.sola();
     sampleOut = temp;
+}
+
+void applyFreqScale(double freqScale, int window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t>& sampleOut, unsigned int sampleRate) {
+    if (freqScale > 1.0) {
+
+        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleIn, sampleOut, sampleRate);
+        //Resample
+        sampleOut = vectorStuff::resampleToSize(sampleOut, sampleOut.size() / freqScale);
+    }
+    else if (freqScale < 1.0) {
+        //Resample
+        sampleOut = vectorStuff::resampleToSize(sampleIn, sampleIn.size() / freqScale);
+        //Sola
+        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleOut, sampleOut, sampleRate);
+    }
 }
 
 //Rectangular window fourier transform
@@ -419,8 +434,12 @@ int main(int, char**)
 
     //Values for SOLA changed by user.
     int userSequenceSize = 120;
-    int userOverlapSize = 30;
-    int userSeekWindow = 20;
+
+    double userSeekPercent = 0.3;
+    double userOverlapPercent = 0.3;
+
+    int userOverlapSize = 0;
+    int userSeekWindow = 0;
 
     //Max number of samples allowed in plots.
     //Primes should be used where possible as undersampled sine waves can look funny otherwise due to periodicity.
@@ -525,7 +544,9 @@ int main(int, char**)
         if (showPlotDemo) {
             ImPlot::ShowDemoWindow(&showPlotDemo);
         }
-
+        //===============
+        //Buffer Selector
+        //===============
         if (dataWindowTable) {
             std::stringstream ss;
             ImGui::Begin("Buffer Selection", &dataWindowTable);
@@ -568,7 +589,9 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+        //=========
+        //wavWindow
+        //=========
         if (wavWindow) {
             dataWindowTable = true;
 
@@ -614,7 +637,7 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Apply Sola to Buffer")) {
-                applySola(solaTimeScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
+                applySola(solaTimeScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
                 //Flag Reseting
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
@@ -640,10 +663,14 @@ int main(int, char**)
                 }
             }
 
-            if (ImGui::Button("Frequency Shift by factor")) {
+            if (ImGui::Button("Frequency Scale by factor")) {
+#define freqFunc
+#ifdef freqFunc
+                applyFreqScale(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
+#else
                 if (frequencyScale > 1.0) {
 
-                    applySola(frequencyScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
+                    applySola(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
                     //Resample
                     windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
                 }
@@ -651,8 +678,9 @@ int main(int, char**)
                     //Resample
                     windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
                     //Sola
-                    applySola(frequencyScale, userSequenceSize, userOverlapSize, userSeekWindow, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer,wav.getSampleRate());
+                    applySola(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
                 }
+#endif
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
             }
@@ -684,6 +712,11 @@ int main(int, char**)
             }
             ImGui::End();
         }
+
+
+        //======================
+        //Buffer Display windows
+        //======================
         {
             std::stringstream ss;
             for (int i = 0; i < windows.size(); i++) {
@@ -832,14 +865,20 @@ int main(int, char**)
                     userSequenceSize = 1;
                 }
             }
-            if (ImGui::InputInt("Overlap Size", &userOverlapSize)) {
-                if (userOverlapSize <= 0) {
-                    userOverlapSize = 1;
+            if (ImGui::InputDouble("Overlap Size", &userOverlapPercent)) {
+                if (userOverlapPercent > 1.0) {
+                    userOverlapPercent = 0.8;
+                }
+                else if (userOverlapPercent < 0.0) {
+                    userOverlapPercent = 0.1;
                 }
             }
-            if (ImGui::InputInt("Seek Window", &userSeekWindow)) {
-                if (userSeekWindow <= 0) {
-                    userSeekWindow = 1;
+            if (ImGui::InputDouble("Seek Window", &userSeekPercent)) {
+                if (userSeekPercent > 1.0) {
+                    userSeekPercent = 0.8;
+                }
+                else if (userSeekPercent < 0.0) {
+                    userSeekPercent = 0.1;
                 }
             }
         }
