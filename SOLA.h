@@ -2,6 +2,24 @@
 #include <vector>
 #include <iostream>
 #include <math.h>
+
+struct SOLAdatum {
+	float freqScale;
+	int solaWindow;
+	float solaOverlapPercentage;
+	int solaOverlap;
+	float solaSeekPercentage;
+	int solaSeek;
+	float THD;
+	float expectedFreq;
+	float measuredFreq;
+	unsigned long int expectedOutLength;
+	unsigned long int gotOutLength;
+	double solaInReadPercentage;
+	double solaOutWritePercentage;
+};
+
+
 class SOLA {
 private:
 	//Variables that define how the SOLA works

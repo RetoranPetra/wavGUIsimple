@@ -653,23 +653,7 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Frequency Scale by factor")) {
-#define freqFunc
-#ifdef freqFunc
                 applyFreqScale(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
-#else
-                if (frequencyScale > 1.0) {
-
-                    applySola(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
-                    //Resample
-                    windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
-                }
-                else if (frequencyScale < 1.0) {
-                    //Resample
-                    windows[currentBuffer].dataBuffer = vectorStuff::resampleToSize(windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer.size() / frequencyScale);
-                    //Sola
-                    applySola(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
-                }
-#endif
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
             }
@@ -679,6 +663,34 @@ int main(int, char**)
                 if (frequencyScale <= 0.0f) {
                     frequencyScale = 0.05f;
                 }
+            }
+            //Makes major 
+            if (ImGui::Button("FreqScale by factor - CHORDMAJOR")) {
+                //Major scale is in 4, 5, 6 ratio.
+
+                double lowerScale = frequencyScale / 5.0 * 4.0;
+                double upperScale = frequencyScale / 5.0 * 6.0;
+
+                vector<int16_t> chordBuffer(windows[currentBuffer].dataBuffer.size(),0);
+                vector<int16_t> chordSumBuffer(windows[currentBuffer].dataBuffer.size(),0);
+                
+                applyFreqScale(lowerScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                for (int i = 0; i < chordBuffer.size(); i++) {
+                    chordSumBuffer[i] += chordBuffer[i] / 3;
+                }
+                applyFreqScale(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                for (int i = 0; i < chordBuffer.size(); i++) {
+                    chordSumBuffer[i] += chordBuffer[i] / 3;
+                }
+                applyFreqScale(upperScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                for (int i = 0; i < chordBuffer.size(); i++) {
+                    chordSumBuffer[i] += chordBuffer[i] / 3;
+                }
+                
+                windows[currentBuffer].dataBuffer = chordSumBuffer;
+                
+                windows[currentBuffer].dataUpdated = true;
+                windows[currentBuffer].showBufferGraphs = false;
             }
 
             if (ImGui::Button("Write to out.wav")) {
