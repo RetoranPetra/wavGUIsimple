@@ -33,8 +33,6 @@
 
 
 
-
-
 #define GUI
 #define fileBuffer 100
 
@@ -514,7 +512,7 @@ int main(int, char**)
             ImGui::Checkbox("Buffer Selection", &dataWindowTable);
             //ImGui::Checkbox("Show Demo Window", &showDemo);
             //ImGui::Checkbox("Show WavReader", &wavWindow);
-            //ImGui::Checkbox("Show Plot Demo", &showPlotDemo);
+            ImGui::Checkbox("Show Plot Demo", &showPlotDemo);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             /*
             if (ImGui::Button("Hello Button")) {
@@ -701,14 +699,16 @@ int main(int, char**)
                     if (windows[i].showBufferGraphs) {
                         ss << "Plot of buffer " << i;
                         if (!windows[i].millisecMode) {
+#pragma warning(suppress : 4996)
                             if (ImPlot::BeginPlot(ss.str().c_str(), "Time (s)", "Amplitude")) {
                                 ImPlot::PlotStairs(wav.getFileName().c_str(), windows[i].dataTimeDisplay.data(), windows[i].dataDisplay.data(), windows[i].dataDisplay.size());
                                 ImPlot::EndPlot();
                             }
                         }
                         else {
-                            if (windows[i].millisecUpdated) { ImPlot::FitNextPlotAxes(); windows[i].millisecUpdated = false; }//recentres plot
+                            if (windows[i].millisecUpdated) { ImPlot::SetNextAxisToFit(IMPLOT_AUTO); windows[i].millisecUpdated = false;}//recentres plot
                             int samples = windows[i].dataBuffer.size() / wav.getSampleNum_ms(20);
+#pragma warning(suppress : 4996)
                             if (ImPlot::BeginPlot((ss.str() + " over 20ms").c_str(), "Time (s)", "Amplitude")) {
                                 ImPlot::PlotLine(wav.getFileName().c_str(), &windows[i].dataBuffer[samples * windows[i].millisecCurrent], samples); //need timescale
                                 ImPlot::EndPlot();
@@ -796,6 +796,7 @@ int main(int, char**)
                     ss << "Plot of buffer " << i << "'s frequencies";
 
                     if (windows[i].showFourier) {
+#pragma warning(suppress : 4996)
                         if (ImPlot::BeginPlot(
                             ss.str().c_str(),
                             "Freq (Hz)",
