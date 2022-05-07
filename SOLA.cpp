@@ -3,15 +3,30 @@
 
 
 //Return false when invalid.
+//Checks validity of input/output location for a certain step.
 bool SOLA::checkValidity(int inStep, int outStep) {
-	if ((size_t)(inputLocation - baseInput) + (size_t)inStep >= input.size()) {
+
+	if (inStep > 0) {
+		if ((size_t)(inputLocation - baseInput) + (size_t)inStep >= input.size()) {
+			std::cout << "Ran out of input\n";
+			return false;
+		}
+	}
+	else if ((inputLocation+inStep) <= baseInput) {
 		std::cout << "Ran out of input\n";
 		return false;
 	}
-	if ((size_t)(outputLocation - baseOutput) + (size_t)outStep >= internalBuffer.size()) {
+	if (outStep > 0) {
+		if ((size_t)(outputLocation - baseOutput) + (size_t)outStep >= internalBuffer.size()) {
+			std::cout << "Ran out of output\n";
+			return false;
+		}
+	}
+	else if ((inputLocation + outStep) <= baseInput) {
 		std::cout << "Ran out of output\n";
 		return false;
 	}
+	
 	return true;
 }
 
@@ -36,7 +51,7 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 
 
 	//Iterates through seekSize, finding best overlap.
-	for (int i = 0; i < seekSize; i++) {
+	for (int i = -seekSize; i < seekSize; i++) {
 
 		double thisCorrelation = 0;
 		double numerator = 0;
@@ -45,7 +60,7 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 
 		for (int j = 0; j < overlapSize; j++) {
 			//Each of these is an individual sum that needs to be calculated seperately, not the same as looping through fraction all at once
-			double x = (double)current[j - i];
+			double x = (double)current[j + i];
 			double y = (double)previous[j];
 
 			numerator += x * y;
@@ -56,7 +71,7 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 		if (thisCorrelation > optCorrelation) {
 			//if greater, new best correlation found. optimal offset update to new optimum
 			optCorrelation = thisCorrelation;
-			optOffset = -i;
+			optOffset = i;
 		}
 
 	}
@@ -91,11 +106,11 @@ void SOLA::sola() {
 		nextWindow = window + nextWindowDistance - (flatSize + overlapSize);
 
 		int foundOffset = 0;
-		//If number of samples read is less than seek size, search could go out of vector range backwards.
-
-
-		if (!(inputSamplesRead < seekSize)) {
-			if (checkValidity(nextWindowDistance - flatSize,0)) {
+		
+		//If number of samples read is less than seek size, search could go out of vector range backwards, so check backwards validity.
+		if (checkValidity(-seekSize, 0)) {
+			//Checks if highset possible point valid.
+			if (checkValidity(nextWindowDistance - flatSize + seekSize, 0)) {
 				foundOffset = seekWindowIndex(window, nextWindow);
 			}
 			else {
@@ -104,8 +119,9 @@ void SOLA::sola() {
 				return;
 			}
 		}
+		std::cout << "Offset Chosen: " << foundOffset << "\n";
+		
 		//InputSamplesread should be updated inside seekWindowIndex, but should be fine outside of it.
-		inputSamplesRead += nextWindowDistance - (flatSize + overlapSize);
 		nextWindow += foundOffset;
 
 		for (int i = 0; i < overlapSize; i++) {
@@ -138,6 +154,7 @@ SOLA::SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, doubl
 	flatSize = (windowSize - (2 * overlapSize));
 
 	//Calculated based on percentage so doesn't go out of range.
+	//Actual length seeked is double this, however due to old code easier to just change like this.
 	seekSize = (int)((double)nextWindowDistance * seekPercentage);
 
 	//Needed so when returning to same location doesn't cause problems

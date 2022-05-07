@@ -14,13 +14,7 @@ private:
 	int flatSize;
 	int nextWindowDistance;
 
-	//Counters for stop conditions
-	//Tried using iterator comparisons to control program, but resulted in problems due to undefined behaviour in some cases.
-	//Stored as size_t to match bounds of regular vector, used to check if writes/reads are feasible.
-	size_t inputSamplesRead = 0; //also counts samples skipped past
-	size_t outputSamplesWritten = 0;
-
-
+	//Using iterators to control program. Be wary of undefined behaviour.
 
 	//Pointers to data
 	std::vector<int16_t>& input;

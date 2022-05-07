@@ -1,75 +1,11 @@
-﻿  Source.cpp
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(88,77): warning C4244: 'argument': conversion from 'double' to 'unsigned long', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(92,75): warning C4244: 'argument': conversion from 'double' to 'unsigned long', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(116,50): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(121,27): warning C4244: '=': conversion from '_Ty' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=double
-          ]
-          and
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(127,47): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(153,40): warning C4244: '+=': conversion from '_Ty' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=double
-          ]
-          and
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(156,37): warning C4018: '<': signed/unsigned mismatch
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(162,37): warning C4018: '<': signed/unsigned mismatch
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(163,50): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(194,39): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(194,48): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(194,57): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(194,66): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(194,75): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(202,70): warning C4018: '<': signed/unsigned mismatch
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(288,41): warning C4244: '+=': conversion from '_Ty' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=double
-          ]
-          and
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(302,37): warning C4018: '<': signed/unsigned mismatch
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(308,37): warning C4018: '<': signed/unsigned mismatch
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(309,50): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=float
-          ]
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(319,39): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned long', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(432,31): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(624,75): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(624,70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(625,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(654,157): warning C4244: 'argument': conversion from 'float' to 'unsigned long', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(737,174): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(743,97): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(754,97): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(773,163): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(841,153): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(933,95): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
-C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(981,36): warning C4018: '>': signed/unsigned mismatch
+﻿  SOLA.cpp
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(40,4): warning C4244: '=': conversion from 'float' to 'short', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(130,51): warning C4244: '=': conversion from 'float' to 'short', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(145,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(161,45): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
   Generating code
-  2 of 1174 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  2 of 1176 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe

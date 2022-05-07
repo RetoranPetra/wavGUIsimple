@@ -488,17 +488,6 @@ int main(int, char**)
         float measuredFundamental = 0;
         long unsigned int measuredFundamentalIndex = 0;
     };
-
-    //Used for outputting data via devmapped button
-    struct datum {
-        float freqScale;
-        int solaWindow;
-        int solaOverlap;
-        int solaSeek;
-        float THD;
-        float expectedFreq;
-        float measuredFreq;
-    };
     
     vector<dataWindow> windows;
 
