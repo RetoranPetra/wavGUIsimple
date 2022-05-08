@@ -30,18 +30,6 @@ bool SOLA::checkValidity(int inStep, int outStep) {
 	return true;
 }
 
-//Combines overlaps
-void SOLA::overlap(std::vector<int16_t>::iterator firstOverlap, std::vector<int16_t>::iterator secondOverlap, std::vector<int16_t>::iterator outputPosition) {
-	//Iterators needed are the positions of the start of each overlap.
-
-	for (int i = 0; i < overlapSize; i++) {
-		float weighting = (float)(overlapSize - i) / (float)overlapSize;
-		*(outputPosition + i) = *(firstOverlap + i) * weighting
-			+ *(secondOverlap + i) * (1.0f - weighting);
-	}
-
-}
-
 //Finds next index
 int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<int16_t>::iterator current) {
 	//previous is the 

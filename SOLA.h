@@ -61,11 +61,10 @@ private:
 
 	//Sola can be implemented with ints, as it is simple addition for the most part, but our case uses floats as that's what wavReader outputs.
 	int seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<int16_t>::iterator current);
-	void overlap(std::vector<int16_t>::iterator firstOverlap, std::vector<int16_t>::iterator secondOverlap, std::vector<int16_t>::iterator outputPosition);
 	bool checkValidity(int inStep, int outStep);
-	void datumPass(SOLAdatum &data);
 	void endSOLA();
 public:
 	SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, double seekPercentage, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output);
 	void sola(void);
+	void datumPass(SOLAdatum& data);
 };

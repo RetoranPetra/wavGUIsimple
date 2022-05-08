@@ -62,7 +62,7 @@ std::string charNullEnderToString(char* charPointer, unsigned int length) {
 }
 
 //Wrappers for class functions
-void applySola(double timeScale, int window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t> &sampleOut, unsigned int sampleRate) { //Input in number of samples for sizes
+void applySola(double timeScale, double window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t>& sampleOut, unsigned int sampleRate, SOLAdatum& dataOut) { //Input in number of samples for sizes
     int size = (int)((double)sampleIn.size() * timeScale);
 
     vector<int16_t> temp;
@@ -70,20 +70,21 @@ void applySola(double timeScale, int window_ms, double overlapPercent, double se
 
     //Sola with default values
     SOLA newCalc(timeScale,
-        window_ms*sampleRate/1000,//Processing sequence size
+        window_ms / 1000.0 * sampleRate,//Processing sequence size
         overlapPercent,//Overlap size
         seekPercent,//Seek for best overlap size
         sampleIn,//Data to read from
         temp//Data to send to
     );//Length of data in
     newCalc.sola();
+    newCalc.datumPass(dataOut);
     sampleOut = temp;
 }
 
-void applyFreqScale(double freqScale, int window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t>& sampleOut, unsigned int sampleRate) {
+void applyFreqScale(double freqScale, double window_ms, double overlapPercent, double seekPercent, vector<int16_t> sampleIn, vector<int16_t>& sampleOut, unsigned int sampleRate, SOLAdatum& dataOut) {
     if (freqScale > 1.0) {
 
-        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleIn, sampleOut, sampleRate);
+        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleIn, sampleOut, sampleRate, dataOut);
         //Resample
         sampleOut = vectorStuff::resampleToSize(sampleOut, sampleOut.size() / freqScale);
     }
@@ -91,7 +92,7 @@ void applyFreqScale(double freqScale, int window_ms, double overlapPercent, doub
         //Resample
         sampleOut = vectorStuff::resampleToSize(sampleIn, sampleIn.size() / freqScale);
         //Sola
-        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleOut, sampleOut, sampleRate);
+        applySola(freqScale, window_ms, overlapPercent, seekPercent, sampleOut, sampleOut, sampleRate, dataOut);
     }
 }
 
@@ -418,6 +419,8 @@ int main(int, char**)
 
     wavReader wav;
 
+    SOLAdatum globalDatum = SOLAdatum();
+
     bool wavWindow = true;
 
     bool dataWindowTable = false;
@@ -433,7 +436,7 @@ int main(int, char**)
 
 
     //Values for SOLA changed by user.
-    int userSequenceSize = 120;
+    double userWindowSizems = 120;
 
     double userSeekPercent = 0.3;
     double userOverlapPercent = 0.3;
@@ -626,7 +629,10 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Apply Sola to Buffer")) {
-                applySola(solaTimeScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
+                //Clear global datum.
+                globalDatum = SOLAdatum();
+
+                applySola(solaTimeScale, userWindowSizems, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate(), globalDatum);
                 //Flag Reseting
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
@@ -653,7 +659,10 @@ int main(int, char**)
             }
 
             if (ImGui::Button("Frequency Scale by factor")) {
-                applyFreqScale(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate());
+                //Clear global datum.
+                globalDatum = SOLAdatum();
+                //Call func
+                applyFreqScale(frequencyScale, userWindowSizems, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, windows[currentBuffer].dataBuffer, wav.getSampleRate(), globalDatum);
                 windows[currentBuffer].dataUpdated = true;
                 windows[currentBuffer].showBufferGraphs = false;
             }
@@ -674,18 +683,20 @@ int main(int, char**)
                 vector<int16_t> chordBuffer(windows[currentBuffer].dataBuffer.size(),0);
                 vector<int16_t> chordSumBuffer(windows[currentBuffer].dataBuffer.size(),0);
                 
-                applyFreqScale(lowerScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                applyFreqScale(lowerScale, userWindowSizems, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate(), globalDatum);
                 for (int i = 0; i < chordBuffer.size(); i++) {
                     chordSumBuffer[i] += chordBuffer[i] / 3;
                 }
-                applyFreqScale(frequencyScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                applyFreqScale(frequencyScale, userWindowSizems, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate(), globalDatum);
                 for (int i = 0; i < chordBuffer.size(); i++) {
                     chordSumBuffer[i] += chordBuffer[i] / 3;
                 }
-                applyFreqScale(upperScale, userSequenceSize, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate());
+                applyFreqScale(upperScale, userWindowSizems, userOverlapPercent, userSeekPercent, windows[currentBuffer].dataBuffer, chordBuffer, wav.getSampleRate(), globalDatum);
                 for (int i = 0; i < chordBuffer.size(); i++) {
                     chordSumBuffer[i] += chordBuffer[i] / 3;
                 }
+                //Clear global datum.
+                globalDatum = SOLAdatum();
                 
                 windows[currentBuffer].dataBuffer = chordSumBuffer;
                 
@@ -850,7 +861,12 @@ int main(int, char**)
 #define devMode
 #ifdef devMode
                     if (ImGui::Button("DevButton")) {
-
+                        vector<SOLAdatum> dataOut;
+                        int numSteps = 10;
+                        double step = 0.05;
+                        for (int i = 0; i < numSteps; i++) {
+                            
+                        }
                     }
 #endif
 
@@ -861,12 +877,12 @@ int main(int, char**)
 
         if (solaAdjustWindow) {
             ImGui::Begin("SOLA Settings", &solaAdjustWindow);
-            if (ImGui::InputInt("Processing Sequence Size", &userSequenceSize)) {
-                if (userSequenceSize <= 0) {
-                    userSequenceSize = 1;
+            if (ImGui::InputDouble("Window Size (ms)", &userWindowSizems)) {
+                if (userWindowSizems <= 0) {
+                    userWindowSizems = 1;
                 }
             }
-            if (ImGui::InputDouble("Overlap Size", &userOverlapPercent)) {
+            if (ImGui::InputDouble("% of maximum Overlap", &userOverlapPercent)) {
                 if (userOverlapPercent > 1.0) {
                     userOverlapPercent = 0.8;
                 }
@@ -874,7 +890,7 @@ int main(int, char**)
                     userOverlapPercent = 0.1;
                 }
             }
-            if (ImGui::InputDouble("Seek Window", &userSeekPercent)) {
+            if (ImGui::InputDouble("% of maximum Seek Window", &userSeekPercent)) {
                 if (userSeekPercent > 1.0) {
                     userSeekPercent = 0.8;
                 }
@@ -882,6 +898,14 @@ int main(int, char**)
                     userSeekPercent = 0.1;
                 }
             }
+            std::stringstream ss;
+            ss << "Datum information\nOverlap Samples: " << globalDatum.solaOverlap << 
+                "\nWindow Samples: "  << globalDatum.solaWindow <<
+                "\nSeek Samples: " << globalDatum.solaSeek <<
+                "\nExpected Out: " << globalDatum.expectedOutLength << "\nActual Out: " << globalDatum.gotOutLength <<
+                "\nInput Received: " << globalDatum.inputSize << "\nInput Read: " << globalDatum.readInputSize <<
+                "\nPercentage Read: " << globalDatum.solaInReadPercentage << "%\nPercentage Written: " << globalDatum.solaOutWritePercentage << "%";
+        ImGui::Text(ss.str().c_str());
         }
         //===========
         //Loop Checks
