@@ -15,6 +15,8 @@ struct SOLAdatum {
 	float measuredFreq;
 	unsigned long int expectedOutLength;
 	unsigned long int gotOutLength;
+	unsigned long int inputSize;
+	unsigned long int readInputSize;
 	double solaInReadPercentage;
 	double solaOutWritePercentage;
 };
@@ -22,6 +24,9 @@ struct SOLAdatum {
 
 class SOLA {
 private:
+
+	SOLAdatum internalData;
+
 	//Variables that define how the SOLA works
 	float timeScale = 1.0;
 	int windowSize;		//Size of window to process
@@ -58,6 +63,8 @@ private:
 	int seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<int16_t>::iterator current);
 	void overlap(std::vector<int16_t>::iterator firstOverlap, std::vector<int16_t>::iterator secondOverlap, std::vector<int16_t>::iterator outputPosition);
 	bool checkValidity(int inStep, int outStep);
+	void datumPass(SOLAdatum &data);
+	void endSOLA();
 public:
 	SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, double seekPercentage, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output);
 	void sola(void);

@@ -80,8 +80,6 @@ int SOLA::seekWindowIndex(std::vector<int16_t>::iterator previous, std::vector<i
 
 
 void SOLA::sola() {
-	
-
 	//Loop stop is controlled by internal if statements.
 	for (int j = 0;;j++) {
 		std::cout << "Loop: " << j << "\n";
@@ -94,7 +92,7 @@ void SOLA::sola() {
 			}
 			else {
 				std::cout << "Ended in flat write.\n";
-				output = internalBuffer;
+				endSOLA();
 				return;
 			}
 		}
@@ -115,7 +113,7 @@ void SOLA::sola() {
 			}
 			else {
 				std::cout << "Ended in overlap seek";
-				output = internalBuffer;
+				endSOLA();
 				return;
 			}
 		}
@@ -124,24 +122,38 @@ void SOLA::sola() {
 		//InputSamplesread should be updated inside seekWindowIndex, but should be fine outside of it.
 		nextWindow += foundOffset;
 
+
+		//inputLocation updated to new position, nextwindow. Used so validity checks/datum still accurate.
+		inputLocation = nextWindow;
+
 		for (int i = 0; i < overlapSize; i++) {
 			if (checkValidity(1,1)) {
 				float weighting = (float)(overlapSize - i) / (float)overlapSize;
-				*(outputLocation++) = *(window++) * weighting + *(nextWindow++) * (1.0f - weighting);
+				*(outputLocation++) = *(window++) * weighting + *(inputLocation++) * (1.0f - weighting);
 			}
 			else {
 				std::cout << "Ended in overlap write";
-				output = internalBuffer;
+				endSOLA();
 				return;
 			}
 		}
-		//inputLocation updated to new position, nextwindow
-		inputLocation = nextWindow;
 	}
+}
+
+void SOLA::endSOLA() {
+	output = internalBuffer;
+	internalData.gotOutLength = outputLocation - baseOutput;
+	internalData.readInputSize = inputLocation - baseInput;
+
+	internalData.solaInReadPercentage = (double)internalData.readInputSize / (double)internalData.inputSize;
+	internalData.solaOutWritePercentage = (double)internalData.gotOutLength / (double)internalData.expectedOutLength;
 }
 
 //Percentages should be between 1 and 0.
 SOLA::SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, double seekPercentage, std::vector<int16_t>& l_input, std::vector<int16_t>& l_output) : input(l_input),output(l_output){
+	internalData = SOLAdatum();
+	
+	
 	timeScale = l_timeScale;
 	windowSize = l_windowSize;
 
@@ -175,4 +187,19 @@ SOLA::SOLA(double l_timeScale, int l_windowSize, double overLapPercentage, doubl
 	outputLocation = internalBuffer.begin();
 	baseOutput = internalBuffer.begin();
 	//std::cout << "timeScale" << timeScale << "windowSize" << windowSize << "overlapSize" << overlapSize << "seekSize" << seekSize << "nextWindowDistance" << nextWindowDistance << "\n";
+
+	//Update datum values for data-out
+
+	internalData.freqScale = timeScale;//Can say are same as they are most of the time
+	internalData.solaWindow = windowSize;
+	internalData.solaOverlapPercentage = overLapPercentage;
+	internalData.solaOverlap = overlapSize;
+	internalData.solaSeekPercentage = seekPercentage;
+	internalData.solaSeek = seekSize;
+	internalData.inputSize = input.size();
+	internalData.expectedOutLength = internalBuffer.size();
+}
+
+void SOLA::datumPass(SOLAdatum& data) {
+	data = internalData;
 }

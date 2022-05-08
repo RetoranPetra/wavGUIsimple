@@ -1,4 +1,15 @@
-﻿  Source.cpp
+﻿  SOLA.cpp
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(40,4): warning C4244: '=': conversion from 'float' to 'short', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(132,51): warning C4244: '=': conversion from 'float' to 'short', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(145,45): warning C4244: '=': conversion from '__int64' to 'unsigned long', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(146,45): warning C4244: '=': conversion from '__int64' to 'unsigned long', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(157,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(173,45): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(195,39): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(197,36): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(199,39): warning C4267: '=': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\SOLA.cpp(200,56): warning C4267: '=': conversion from 'size_t' to 'unsigned long', possible loss of data
+  Source.cpp
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(88,77): warning C4244: 'argument': conversion from 'double' to 'unsigned long', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(92,75): warning C4244: 'argument': conversion from 'double' to 'unsigned long', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(116,50): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
@@ -68,8 +79,8 @@ C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(842,153): warni
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(934,95): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
 C:\Users\flyro\source\repos\wavGUIsimple\wavGUIsimple\Source.cpp(982,36): warning C4018: '>': signed/unsigned mismatch
   Generating code
-  1 of 1176 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  3 of 1177 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   wavGUIsimple.vcxproj -> C:\Users\flyro\source\repos\wavGUIsimple\x64\Release\wavGUIsimple.exe
